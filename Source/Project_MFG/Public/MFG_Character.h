@@ -53,11 +53,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
 		bool bIsRunning;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
 		bool bIsRolling;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
-	bool bIsUsingBag;
+		bool bIsUsingBag;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 		float Speed;
