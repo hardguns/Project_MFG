@@ -89,9 +89,9 @@ void AMFG_Character::RollEnd()
 
 void AMFG_Character::BagImpulse()
 {
-	bIsUsingBag = true;
-	if (bIsUsingBag && !GetMovementComponent()->IsFalling())
+	if (!bIsUsingBag && !GetMovementComponent()->IsFalling())
 	{
+		bIsUsingBag = true;
 		FVector currentPosition;
 		if (bUseFirstPersonView)
 		{

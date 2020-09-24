@@ -57,7 +57,7 @@ protected:
 		bool bIsRolling;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
-		bool bIsUsingBag;
+	bool bIsUsingBag;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 		float Speed;
