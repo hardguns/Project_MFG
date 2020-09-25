@@ -14,6 +14,7 @@ AMFG_Character::AMFG_Character()
 
 	bUseFirstPersonView = true;
 	bIsCrouching = false;
+	bCanRoll = true;
 	bIsRolling = false;
 	bIsRunning = false;
 	bIsUsingBag = false;
@@ -82,10 +83,10 @@ void AMFG_Character::RollStart()
 	bIsRolling = true;
 }
 
-void AMFG_Character::RollEnd()
-{
-	bIsRolling = false;
-}
+//void AMFG_Character::RollEnd()
+//{
+//	bIsRolling = false;
+//}
 
 void AMFG_Character::BagImpulse()
 {
@@ -171,7 +172,7 @@ void AMFG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	//PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AMFG_Character::CrouchEnd);
 
 	PlayerInputComponent->BindAction("Roll", IE_Pressed, this, &AMFG_Character::RollStart);
-	PlayerInputComponent->BindAction("Roll", IE_Released, this, &AMFG_Character::RollEnd);
+	//PlayerInputComponent->BindAction("Roll", IE_Released, this, &AMFG_Character::RollEnd);
 
 	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &AMFG_Character::Run);
 	//PlayerInputComponent->BindAction("Run", IE_Released, this, &AMFG_Character::Run);
