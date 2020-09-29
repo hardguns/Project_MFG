@@ -26,16 +26,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		UCameraComponent* TPSCameraComponent;
-
-	/*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Animation")
-	UAnimInstance* AnimInstance;*/
-
-	/*UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Animations")
-	UAnimMontage* BagAnimationMontage;*/
-
-	/*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UCharacterMovementComponent* CharacterMovementComponent;*/
-
+	
 protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
@@ -62,8 +53,19 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
 		bool bIsUsingBag;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float Speed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float DashForce;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
+	TArray<FName> DoorKeys;
+
+public:
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Action")
+		bool bCanUseItem;
 
 public:
 	// Sets default values for this character's properties
@@ -79,15 +81,15 @@ protected:
 
 	void CrouchStart();
 
-	void CrouchEnd();
-
 	void RollStart();
-
-	void RollEnd();
 
 	void BagImpulse();
 
 	void Run();
+
+	void SetCharacterSpeed();
+
+	void DoAction();
 
 	virtual void Jump();
 
@@ -101,5 +103,11 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual void AddControllerPitchInput(float value) override;
+
+	FVector GetCurrentPosition();
+
+	void AddKey(FName NewKey);
+
+	bool HasKey(FName KeyTag);
 
 };

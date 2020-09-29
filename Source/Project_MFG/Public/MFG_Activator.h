@@ -4,14 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "MFG_Door.generated.h"
+#include "MFG_Activator.generated.h"
 
 class USceneComponent;
 class UStaticMeshComponent;
+class UPointLightComponent;
 class UBoxComponent;
 
 UCLASS()
-class PROJECT_MFG_API AMFG_Door : public AActor
+class PROJECT_MFG_API AMFG_Activator : public AActor
 {
 	GENERATED_BODY()
 
@@ -21,42 +22,45 @@ protected:
 		USceneComponent* CustomRootComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		UStaticMeshComponent* DoorFrameComponent;
+		UStaticMeshComponent* ActivatorMeshComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		UStaticMeshComponent* DoorComponent;
+		UPointLightComponent* PointLight;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		UBoxComponent* KeyZoneColliderComponent;
+		UBoxComponent* ActiveZoneColliderComponent;
+
+protected:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Light")
+		float LightIntensity;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Light")
+		bool bSwitchState;
 
 public:
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "My Door")
-		float OpenAngle;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "My Door")
-		bool bIsOpen;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "My Door")
-		FName DoorTag;
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Activator")
+		FName ActivatorTag;
+	
 public:	
 	// Sets default values for this actor's properties
-	AMFG_Door();
+	AMFG_Activator();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	void CheckKeyFromPlayer(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+		void CheckActivatorUse(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void OpenDoor();
+	void UseActivator();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "My Door")
-	void BP_OpenDoor();
+		void BP_UseActivator();
+
 };

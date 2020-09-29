@@ -3,6 +3,8 @@
 
 #include "MFG_Door.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/BoxComponent.h"
+#include "MFG_Character.h"
 
 // Sets default values
 AMFG_Door::AMFG_Door()
@@ -19,14 +21,41 @@ AMFG_Door::AMFG_Door()
 	DoorComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Door"));
 	DoorComponent->SetupAttachment(CustomRootComponent);
 
+	KeyZoneColliderComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("KeyZoneColliderComponent"));
+	KeyZoneColliderComponent->SetupAttachment(CustomRootComponent);
+	KeyZoneColliderComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	KeyZoneColliderComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+	KeyZoneColliderComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
 	OpenAngle = -90.0f;
+	DoorTag = "KeyA";
 }
 
 // Called when the game starts or when spawned
 void AMFG_Door::BeginPlay()
 {
 	Super::BeginPlay();
-	OpenDoor();
+	KeyZoneColliderComponent->OnComponentBeginOverlap.AddDynamic(this, &AMFG_Door::CheckKeyFromPlayer);
+}
+
+void AMFG_Door::CheckKeyFromPlayer(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (bIsOpen)
+	{
+		return;
+	}
+
+	if (IsValid(OtherActor))
+	{
+		AMFG_Character* OverlappedCharacter = Cast<AMFG_Character>(OtherActor);
+		if (IsValid(OverlappedCharacter))
+		{
+			if (OverlappedCharacter->HasKey(DoorTag))
+			{
+				OpenDoor();
+			}
+		}
+	}
 }
 
 // Called every frame
@@ -38,7 +67,9 @@ void AMFG_Door::Tick(float DeltaTime)
 
 void AMFG_Door::OpenDoor()
 {
-	FRotator NewRotation = FRotator(0.0f, OpenAngle, 0.0f);
-	DoorComponent->SetRelativeRotation(NewRotation);
+// 	FRotator NewRotation = FRotator(0.0f, OpenAngle, 0.0f);
+// 	DoorComponent->SetRelativeRotation(NewRotation);
+	bIsOpen = true;
+	BP_OpenDoor();
 }
 

@@ -19,7 +19,10 @@ AMFG_Character::AMFG_Character()
 	bIsRunning = false;
 	bIsUsingBag = false;
 	Speed = 150.0f;
+	DashForce = 10000.0f;
 	FPSCameraSocketName = "SCK_Camera";
+
+	bCanUseItem = false;
 
 	FPSCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FPS_CameraComponent"));
 	FPSCameraComponent->bUsePawnControlRotation = true;
@@ -32,9 +35,6 @@ AMFG_Character::AMFG_Character()
 	TPSCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("TPS_CameraComponent"));
 	TPSCameraComponent->SetupAttachment(SpringArmComponent);
 
-	//AnimInstance = CreateDefaultSubobject<UAnimInstance>(TEXT("BagAnimationInstance"));
-
-	//CharacterMovementComponent = CreateDefaultSubobject<UCharacterMovementComponent>(TEXT("CharacterMovement"));
 }
 
 // Called when the game starts or when spawned
@@ -69,14 +69,9 @@ void AMFG_Character::CrouchStart()
 	else
 	{
 		Super::UnCrouch();
+		SetCharacterSpeed();
 	}
 }
-
-//void AMFG_Character::CrouchEnd()
-//{
-//	bIsCrouching = false;
-//	Super::UnCrouch();
-//}
 
 void AMFG_Character::RollStart()
 {
@@ -93,20 +88,8 @@ void AMFG_Character::BagImpulse()
 	if (!bIsUsingBag && !GetMovementComponent()->IsFalling())
 	{
 		bIsUsingBag = true;
-		FVector currentPosition;
-		if (bUseFirstPersonView)
-		{
-			currentPosition = FPSCameraComponent->GetForwardVector();
-			currentPosition.Z = 0.0f;
-			//AnimInstance->Montage_Play()
-			Super::LaunchCharacter(currentPosition * 10000.0f, false, true);
-		}
-		else
-		{
-			currentPosition = TPSCameraComponent->GetForwardVector();
-			currentPosition.Z = 0.0f;
-			Super::LaunchCharacter(currentPosition * 10000.0f, false, true);
-		}
+		FVector currentPosition = GetCurrentPosition();
+		Super::LaunchCharacter(currentPosition * DashForce, true, true);
 	}
 }
 
@@ -120,9 +103,14 @@ void AMFG_Character::Run()
 		bIsCrouching = false;
 	}
 
+	SetCharacterSpeed();
+}
+
+void AMFG_Character::SetCharacterSpeed()
+{
 	if (bIsRunning)
 	{
-		Speed = 900;
+		Speed = 1400;
 		GetCharacterMovement()->MaxWalkSpeed = Speed;
 	}
 	else
@@ -130,6 +118,28 @@ void AMFG_Character::Run()
 		Speed = 600;
 		GetCharacterMovement()->MaxWalkSpeed = Speed;
 	}
+}
+
+void AMFG_Character::DoAction()
+{
+	bCanUseItem = !bCanUseItem;
+}
+
+FVector AMFG_Character::GetCurrentPosition()
+{
+	FVector currentPosition;
+	if (bUseFirstPersonView)
+	{
+		currentPosition = FPSCameraComponent->GetForwardVector();
+		currentPosition.Z = 0.0f;
+	}
+	else
+	{
+		currentPosition = TPSCameraComponent->GetForwardVector();
+		currentPosition.Z = 0.0f;
+	}
+
+	return currentPosition;
 }
 
 void AMFG_Character::Jump()
@@ -169,17 +179,27 @@ void AMFG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &AMFG_Character::StopJumping);
 
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AMFG_Character::CrouchStart);
-	//PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AMFG_Character::CrouchEnd);
 
 	PlayerInputComponent->BindAction("Roll", IE_Pressed, this, &AMFG_Character::RollStart);
 	//PlayerInputComponent->BindAction("Roll", IE_Released, this, &AMFG_Character::RollEnd);
 
 	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &AMFG_Character::Run);
-	//PlayerInputComponent->BindAction("Run", IE_Released, this, &AMFG_Character::Run);
 
-	PlayerInputComponent->BindAction("Impulse", IE_Pressed, this, &AMFG_Character::BagImpulse);
-	//PlayerInputComponent->BindAction("Impulse", IE_Released, this, &AMFG_Character::BagImpulse);
+	PlayerInputComponent->BindAction("Impulse", IE_DoubleClick, this, &AMFG_Character::BagImpulse);
 
+	PlayerInputComponent->BindAction("Action", IE_Pressed, this, &AMFG_Character::DoAction);
+	PlayerInputComponent->BindAction("Action", IE_Released, this, &AMFG_Character::DoAction);
+
+}
+
+void AMFG_Character::AddKey(FName NewKey)
+{
+	DoorKeys.Add(NewKey);
+}
+
+bool AMFG_Character::HasKey(FName KeyTag)
+{
+	return DoorKeys.Contains(KeyTag);
 }
 
 
