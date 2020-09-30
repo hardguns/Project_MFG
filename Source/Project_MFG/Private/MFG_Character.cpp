@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "MFG_Activator.h"
 
 // Sets default values
 AMFG_Character::AMFG_Character()
@@ -20,6 +21,7 @@ AMFG_Character::AMFG_Character()
 	bIsUsingBag = false;
 	Speed = 150.0f;
 	DashForce = 10000.0f;
+	RollForce = 15000.0f;
 	FPSCameraSocketName = "SCK_Camera";
 
 	bCanUseItem = false;
@@ -34,6 +36,8 @@ AMFG_Character::AMFG_Character()
 
 	TPSCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("TPS_CameraComponent"));
 	TPSCameraComponent->SetupAttachment(SpringArmComponent);
+
+	InteractiveObject = NULL;
 
 }
 
@@ -76,6 +80,11 @@ void AMFG_Character::CrouchStart()
 void AMFG_Character::RollStart()
 {
 	bIsRolling = true;
+	/*if (bIsRolling)
+	{
+		FVector currentPosition = GetCurrentPosition();
+		Super::LaunchCharacter(currentPosition * RollForce, true, true);
+	}*/
 }
 
 //void AMFG_Character::RollEnd()
@@ -110,7 +119,7 @@ void AMFG_Character::SetCharacterSpeed()
 {
 	if (bIsRunning)
 	{
-		Speed = 1400;
+		Speed = 1300;
 		GetCharacterMovement()->MaxWalkSpeed = Speed;
 	}
 	else
@@ -122,7 +131,10 @@ void AMFG_Character::SetCharacterSpeed()
 
 void AMFG_Character::DoAction()
 {
-	bCanUseItem = !bCanUseItem;
+	if (InteractiveObject != NULL)
+	{
+		InteractiveObject->UseActivator();
+	}
 }
 
 FVector AMFG_Character::GetCurrentPosition()
@@ -185,10 +197,9 @@ void AMFG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &AMFG_Character::Run);
 
-	PlayerInputComponent->BindAction("Impulse", IE_DoubleClick, this, &AMFG_Character::BagImpulse);
+	PlayerInputComponent->BindAction("Impulse", IE_Pressed, this, &AMFG_Character::BagImpulse);
 
 	PlayerInputComponent->BindAction("Action", IE_Pressed, this, &AMFG_Character::DoAction);
-	PlayerInputComponent->BindAction("Action", IE_Released, this, &AMFG_Character::DoAction);
 
 }
 

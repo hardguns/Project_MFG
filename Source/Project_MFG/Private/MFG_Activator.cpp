@@ -12,7 +12,7 @@
 // Sets default values
 AMFG_Activator::AMFG_Activator()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	CustomRootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("CustomRootComponent"));
@@ -44,7 +44,8 @@ void AMFG_Activator::BeginPlay()
 {
 	Super::BeginPlay();
 	ActiveZoneColliderComponent->OnComponentBeginOverlap.AddDynamic(this, &AMFG_Activator::CheckActivatorUse);
-	
+	ActiveZoneColliderComponent->OnComponentEndOverlap.AddDynamic(this, &AMFG_Activator::UnCheckActivatorUse);
+
 }
 
 void AMFG_Activator::CheckActivatorUse(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -54,22 +55,19 @@ void AMFG_Activator::CheckActivatorUse(UPrimitiveComponent* OverlappedComponent,
 		AMFG_Character* OverlappedCharacter = Cast<AMFG_Character>(OtherActor);
 		if (IsValid(OverlappedCharacter))
 		{
-			TArray<AActor*> FoundActors;
-			UGameplayStatics::GetAllActorsOfClass(GetWorld(), AMFG_LaunchPad::StaticClass(), FoundActors);
-			for (int i = 0; i < FoundActors.Num(); i++)
-			{
-				AMFG_LaunchPad* LaunchPadObj = Cast<AMFG_LaunchPad>(FoundActors[i]);
-				if (IsValid(LaunchPadObj))
-				{
-					if (LaunchPadObj->LaunchPadTag == ActivatorTag /*&& OverlappedCharacter->bCanUseItem*/)
-					{
-						bool activeState = LaunchPadObj->bIsActive;
-						LaunchPadObj->bIsActive = !activeState;
-						bSwitchState = activeState;
-						UseActivator();
-					}
-				}
-			}	
+			OverlappedCharacter->InteractiveObject = this;
+		}
+	}
+}
+
+void AMFG_Activator::UnCheckActivatorUse(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (IsValid(OtherActor))
+	{
+		AMFG_Character* OverlappedCharacter = Cast<AMFG_Character>(OtherActor);
+		if (IsValid(OverlappedCharacter))
+		{
+			OverlappedCharacter->InteractiveObject = NULL;
 		}
 	}
 }
@@ -83,6 +81,24 @@ void AMFG_Activator::Tick(float DeltaTime)
 
 void AMFG_Activator::UseActivator()
 {
-	BP_UseActivator();
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AMFG_Item::StaticClass(), FoundActors);
+	for (int i = 0; i < FoundActors.Num(); i++)
+	{
+		//if (ActivatorTag.ToString().Find("LaunchPad"))
+		//{
+			AMFG_LaunchPad* LaunchPadObj = Cast<AMFG_LaunchPad>(FoundActors[i]);
+			if (IsValid(LaunchPadObj))
+			{
+				if (LaunchPadObj->LaunchPadTag == ActivatorTag)
+				{
+					bool activeState = LaunchPadObj->bIsActive;
+					LaunchPadObj->bIsActive = !activeState;
+					bSwitchState = !activeState;
+					BP_UseActivator();
+				}
+			}
+		//}
+	}
 }
 

@@ -10,6 +10,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UCharacterMovementComponent;
 class UAnimInstance;
+class AMFG_Activator;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_Character : public ACharacter
@@ -59,6 +60,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float DashForce;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+		float RollForce;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
 	TArray<FName> DoorKeys;
 
@@ -66,6 +70,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Action")
 		bool bCanUseItem;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Action")
+		AMFG_Activator* InteractiveObject;
 
 public:
 	// Sets default values for this character's properties

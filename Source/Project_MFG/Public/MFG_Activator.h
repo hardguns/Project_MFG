@@ -35,10 +35,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Light")
 		float LightIntensity;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Light")
-		bool bSwitchState;
-
 public:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Activator")
+		bool bSwitchState;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Activator")
 		FName ActivatorTag;
@@ -53,6 +53,9 @@ protected:
 
 	UFUNCTION()
 		void CheckActivatorUse(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+		
+	UFUNCTION()
+		void UnCheckActivatorUse(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 public:	
 	// Called every frame
@@ -60,7 +63,7 @@ public:
 
 	void UseActivator();
 
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "My Door")
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Activator")
 		void BP_UseActivator();
 
 };
