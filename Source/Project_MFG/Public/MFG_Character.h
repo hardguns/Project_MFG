@@ -9,8 +9,8 @@
 class USpringArmComponent;
 class UCameraComponent;
 class UCharacterMovementComponent;
-class UAnimInstance;
 class AMFG_Activator;
+class AMFG_Weapon;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_Character : public ACharacter
@@ -64,12 +64,24 @@ protected:
 		float RollForce;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
-	TArray<FName> DoorKeys;
+		TArray<FName> DoorKeys;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+		TSubclassOf<AMFG_Weapon> InitialWeaponClass;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Weapon")
+		AMFG_Weapon* CurrentWeapon;
 
 public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Action")
 		bool bCanUseItem;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+		bool bIsShooting;
+
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	//	bool bIsWeaponAutomatic;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Action")
 		AMFG_Activator* InteractiveObject;
@@ -77,6 +89,8 @@ public:
 public:
 	// Sets default values for this character's properties
 	AMFG_Character();
+
+	virtual FVector GetPawnViewLocation() const override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -101,6 +115,14 @@ protected:
 	virtual void Jump();
 
 	virtual void StopJumping();
+
+	void CreateInitialWeapon();
+
+	void StartWeaponAction();
+
+	void StopWeaponAction();
+
+	void SetWeaponBehavior();
 
 public:
 	// Called every frame

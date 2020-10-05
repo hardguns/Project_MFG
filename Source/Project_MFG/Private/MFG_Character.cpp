@@ -6,6 +6,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "MFG_Activator.h"
+#include "Weapons/MFG_Weapon.h"
+#include "Weapons/MFG_Rifle.h"
 
 // Sets default values
 AMFG_Character::AMFG_Character()
@@ -26,6 +28,8 @@ AMFG_Character::AMFG_Character()
 
 	bCanUseItem = false;
 
+	//bIsWeaponAutomatic = false;
+
 	FPSCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FPS_CameraComponent"));
 	FPSCameraComponent->bUsePawnControlRotation = true;
 	FPSCameraComponent->SetupAttachment(GetMesh(), FPSCameraSocketName);
@@ -41,10 +45,27 @@ AMFG_Character::AMFG_Character()
 
 }
 
+FVector AMFG_Character::GetPawnViewLocation() const
+{
+	if (IsValid(FPSCameraComponent) && bUseFirstPersonView)
+	{
+		return FPSCameraComponent->GetComponentLocation();
+	}
+
+	if (IsValid(TPSCameraComponent) && !bUseFirstPersonView)
+	{
+		return TPSCameraComponent->GetComponentLocation();
+	}
+
+	return Super::GetPawnViewLocation();
+}
+
 // Called when the game starts or when spawned
 void AMFG_Character::BeginPlay()
 {
 	Super::BeginPlay();
+
+	CreateInitialWeapon();
 
 }
 
@@ -68,7 +89,7 @@ void AMFG_Character::CrouchStart()
 
 	if (bIsCrouching)
 	{
-		Super::Crouch();
+		Super:: Crouch();
 	}
 	else
 	{
@@ -131,10 +152,14 @@ void AMFG_Character::SetCharacterSpeed()
 
 void AMFG_Character::DoAction()
 {
-	if (InteractiveObject != NULL)
+	if (IsValid(InteractiveObject))
 	{
-		InteractiveObject->UseActivator();
+		if (InteractiveObject != NULL)
+		{
+			InteractiveObject->UseActivator();
+		}
 	}
+
 }
 
 FVector AMFG_Character::GetCurrentPosition()
@@ -164,6 +189,49 @@ void AMFG_Character::StopJumping()
 	Super::StopJumping();
 }
 
+void AMFG_Character::CreateInitialWeapon()
+{
+	if (IsValid(InitialWeaponClass))
+	{
+		CurrentWeapon = GetWorld()->SpawnActor<AMFG_Weapon>(InitialWeaponClass, GetActorLocation(), GetActorRotation());
+		if (IsValid(CurrentWeapon))
+		{
+			CurrentWeapon->SetCharacterOwner(this);
+			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		}
+	}
+}
+
+void AMFG_Character::StartWeaponAction()
+{
+	bIsShooting = true;
+	bIsRunning = false;
+
+	if (IsValid(CurrentWeapon))
+	{
+		CurrentWeapon->StartAction();
+	}
+}
+
+void AMFG_Character::StopWeaponAction()
+{
+	bIsShooting = false;
+	if (IsValid(CurrentWeapon))
+	{
+		CurrentWeapon->StopAction();
+	}
+}
+
+void AMFG_Character::SetWeaponBehavior()
+{
+	AMFG_Rifle* RifleEquipped = Cast<AMFG_Rifle>(CurrentWeapon);
+	if (IsValid(RifleEquipped))
+	{
+		RifleEquipped->bIsAutomatic = !RifleEquipped->bIsAutomatic;
+		//bIsWeaponAutomatic = !bIsWeaponAutomatic;
+	}
+}
+
 void AMFG_Character::AddControllerPitchInput(float value)
 {
 	Super::AddControllerPitchInput(bIsLookInversion ? -value : value);
@@ -173,6 +241,11 @@ void AMFG_Character::AddControllerPitchInput(float value)
 void AMFG_Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	//if (bIsShooting && bIsWeaponAutomatic)
+	//{
+	//	StartWeaponAction();
+	//}
 
 }
 
@@ -200,6 +273,11 @@ void AMFG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Impulse", IE_Pressed, this, &AMFG_Character::BagImpulse);
 
 	PlayerInputComponent->BindAction("Action", IE_Pressed, this, &AMFG_Character::DoAction);
+
+	PlayerInputComponent->BindAction("WeaponAction", IE_Pressed, this, &AMFG_Character::StartWeaponAction);
+	PlayerInputComponent->BindAction("WeaponAction", IE_Released, this, &AMFG_Character::StopWeaponAction);
+	
+	PlayerInputComponent->BindAction("WeaponBehavior", IE_Pressed, this, &AMFG_Character::SetWeaponBehavior);
 
 }
 
