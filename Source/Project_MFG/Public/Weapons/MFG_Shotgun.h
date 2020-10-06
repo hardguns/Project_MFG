@@ -45,11 +45,19 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 		UParticleSystem* TraceEffect;
+		
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Shotgun")
+		float ShotForce;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LineTrace|Debug")
+		bool CanShoot;
 
 protected:
 
 	virtual void StartAction() override;
 
 	virtual void StopAction() override;
+
+	void ActionShot();
 
 };

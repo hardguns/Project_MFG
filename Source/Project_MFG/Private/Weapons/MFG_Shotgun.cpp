@@ -9,6 +9,7 @@
 #include "Math/UnrealMathUtility.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "DrawDebugHelpers.h"
+#include "MFG_Character.h"
 
 AMFG_Shotgun::AMFG_Shotgun()
 {
@@ -16,12 +17,27 @@ AMFG_Shotgun::AMFG_Shotgun()
 	TraceLenght = 850.0f;
 	MuzzleSocketName = "SCK_Muzzle";
 	PelletsNumber = 5;
+	ShotForce = 1500.0f;
+	CanShoot = true;
 }
 
 void AMFG_Shotgun::StartAction()
 {
 	Super::StartAction();
 
+	if (CanShoot)
+	{
+		ActionShot();
+	}
+}
+
+void AMFG_Shotgun::StopAction()
+{
+	Super::StopAction();
+}
+
+void AMFG_Shotgun::ActionShot()
+{
 	AActor* CurrentOwner = GetOwner();
 
 	if (IsValid(CurrentOwner))
@@ -75,6 +91,13 @@ void AMFG_Shotgun::StartAction()
 			}
 		}
 
+		AMFG_Character* MainCharacter = Cast<AMFG_Character>(CurrentOwner);
+		if (IsValid(MainCharacter))
+		{
+			FVector MovementDirection = -MainCharacter->GetRootComponent()->GetForwardVector();
+			MainCharacter->LaunchCharacter(MovementDirection * ShotForce, true, true);
+		}
+
 		if (IsValid(MuzzleEffect))
 		{
 			UGameplayStatics::SpawnEmitterAttached(MuzzleEffect, CurrentOwnerCharacter->GetMesh(), MuzzleSocketName);
@@ -95,9 +118,4 @@ void AMFG_Shotgun::StartAction()
 			}
 		}
 	}
-}
-
-void AMFG_Shotgun::StopAction()
-{
-	Super::StopAction();
 }
