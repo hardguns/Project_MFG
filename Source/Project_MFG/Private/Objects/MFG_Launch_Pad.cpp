@@ -17,6 +17,7 @@ AMFG_Launch_Pad::AMFG_Launch_Pad()
 	LaunchPadParticleComponent->SetVisibility(false);
 
 	LaunchForce = 1000.0f;
+	InitialLaunchDirection = FVector::UpVector;
 }
 
 void AMFG_Launch_Pad::Tick(float DeltaTime)
@@ -38,7 +39,7 @@ void AMFG_Launch_Pad::Interact(AMFG_Character* CharacterToLaunch)
 	Super::Interact(CharacterToLaunch);
 
 	if (bSwitchState) {
-		FVector LaunchDirection = (GetRootComponent()->GetForwardVector() + FVector(0, 0, 1.0f));
+		FVector LaunchDirection = (GetRootComponent()->GetForwardVector() + InitialLaunchDirection);
 		//CharacterToLaunch->UnCrouch();
 		CharacterToLaunch->LaunchCharacter(LaunchDirection * LaunchForce, true, true);
 	}

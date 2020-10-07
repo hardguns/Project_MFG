@@ -30,6 +30,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LaunchPad")
 		float LaunchForce;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LaunchPad")
+		FVector InitialLaunchDirection;
+
 public:
 
 	AMFG_Launch_Pad();
