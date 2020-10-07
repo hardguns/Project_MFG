@@ -1,15 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Items/MFG_LaunchPad.h"
+#include "Objects/MFG_Launch_Pad.h"
 #include "Components/StaticMeshComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "MFG_Character.h"
 
-AMFG_LaunchPad::AMFG_LaunchPad()
+AMFG_Launch_Pad::AMFG_Launch_Pad() 
 {
-	bIsActive = false;
-
 	LaunchPadMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LaunchPadMeshComponent"));
 	LaunchPadMeshComponent->SetupAttachment(RootComponent);
 	LaunchPadMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -19,31 +17,32 @@ AMFG_LaunchPad::AMFG_LaunchPad()
 	LaunchPadParticleComponent->SetVisibility(false);
 
 	LaunchForce = 1000.0f;
-	LaunchPadTag = "LaunchPad1";
 }
 
-void AMFG_LaunchPad::Tick(float DeltaTime)
+void AMFG_Launch_Pad::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bIsActive)
+	if (bSwitchState)
 	{
 		LaunchPadParticleComponent->SetVisibility(true);
 	}
-	else 
+	else
 	{
 		LaunchPadParticleComponent->SetVisibility(false);
 	}
 }
 
-void AMFG_LaunchPad::Pickup(AMFG_Character* CharacterToLaunch)
+void AMFG_Launch_Pad::Interact(AMFG_Character* CharacterToLaunch)
 {
-	Super::Pickup(CharacterToLaunch);
+	Super::Interact(CharacterToLaunch);
 
-	if (bIsActive) {
+	if (bSwitchState) {
 		FVector LaunchDirection = (GetRootComponent()->GetForwardVector() + FVector(0, 0, 1.0f));
 		//CharacterToLaunch->UnCrouch();
 		CharacterToLaunch->LaunchCharacter(LaunchDirection * LaunchForce, true, true);
 	}
 }
+
+
 

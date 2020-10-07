@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Items/MFG_Item.h"
-#include "MFG_LaunchPad.generated.h"
+#include "Objects/MFG_InteractiveObject.h"
+#include "MFG_Launch_Pad.generated.h"
 
 class UStaticMeshComponent;
 class UParticleSystemComponent;
@@ -13,7 +13,7 @@ class UParticleSystemComponent;
  * 
  */
 UCLASS()
-class PROJECT_MFG_API AMFG_LaunchPad : public AMFG_Item
+class PROJECT_MFG_API AMFG_Launch_Pad : public AMFG_InteractiveObject
 {
 	GENERATED_BODY()
 
@@ -32,15 +32,7 @@ protected:
 
 public:
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LaunchPad")
-		bool bIsActive;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "LaunchPad")
-		FName LaunchPadTag;
-
-public:
-
-	AMFG_LaunchPad();
+	AMFG_Launch_Pad();
 
 public:
 	// Called every frame
@@ -48,6 +40,6 @@ public:
 
 protected:
 
-	virtual void Pickup(AMFG_Character* CharacterToLaunch) override;
-	
+	virtual void Interact(AMFG_Character* CharacterToLaunch) override;
+
 };

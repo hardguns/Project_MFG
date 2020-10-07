@@ -9,7 +9,7 @@
 class USpringArmComponent;
 class UCameraComponent;
 class UCharacterMovementComponent;
-class AMFG_Activator;
+class AMFG_InteractiveObject;
 class AMFG_Weapon;
 
 UCLASS()
@@ -84,7 +84,7 @@ public:
 	//	bool bIsWeaponAutomatic;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Action")
-		AMFG_Activator* InteractiveObject;
+		AMFG_InteractiveObject* InteractiveObject;
 
 public:
 	// Sets default values for this character's properties

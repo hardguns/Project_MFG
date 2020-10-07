@@ -5,7 +5,8 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "MFG_Activator.h"
+#include "Objects/MFG_InteractiveObject.h"
+#include "Objects/MFG_Activable.h"
 #include "Weapons/MFG_Weapon.h"
 #include "Weapons/MFG_Rifle.h"
 
@@ -154,9 +155,10 @@ void AMFG_Character::DoAction()
 {
 	if (IsValid(InteractiveObject))
 	{
-		if (InteractiveObject != NULL)
+		AMFG_Activable* ActivableObj = Cast<AMFG_Activable>(InteractiveObject);
+		if (IsValid(ActivableObj))
 		{
-			InteractiveObject->UseActivator();
+			ActivableObj->UseActivable();
 		}
 	}
 

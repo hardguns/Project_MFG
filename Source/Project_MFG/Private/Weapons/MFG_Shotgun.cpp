@@ -10,6 +10,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "DrawDebugHelpers.h"
 #include "MFG_Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AMFG_Shotgun::AMFG_Shotgun()
 {
@@ -59,9 +60,9 @@ void AMFG_Shotgun::ActionShot()
 
 		for (int i = 0; i < PelletsNumber; i++)
 		{
-			float RandPosX = FMath::RandRange(-25.0f, 25.0f);
-			float RandPosY = FMath::RandRange(-25.0f, 25.0f);
-			float RandPosZ = FMath::RandRange(-25.0f, 25.0f);
+			float RandPosX = FMath::RandRange(-15.0f, 15.0f);
+			float RandPosY = FMath::RandRange(-15.0f, 15.0f);
+			float RandPosZ = FMath::RandRange(-50.0f, 50.0f);
 
 			FVector RandVector = FVector(RandPosX, RandPosY, RandPosZ);
 			FVector NewEndTrace = TraceEndPoint + RandVector;
@@ -95,7 +96,10 @@ void AMFG_Shotgun::ActionShot()
 		if (IsValid(MainCharacter))
 		{
 			FVector MovementDirection = -MainCharacter->GetRootComponent()->GetForwardVector();
-			MainCharacter->LaunchCharacter(MovementDirection * ShotForce, true, true);
+			if (!MainCharacter->GetMovementComponent()->IsFalling())
+			{
+				MainCharacter->LaunchCharacter(MovementDirection * ShotForce, true, true);
+			}
 		}
 
 		if (IsValid(MuzzleEffect))
