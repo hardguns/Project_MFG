@@ -2,16 +2,18 @@
 
 
 #include "Weapons/MFG_GrenadeLauncher.h"
+#include "Project_MFG/Project_MFG.h"
 #include "Weapons/MFG_Projectile.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "DrawDebugHelpers.h"
 
 AMFG_GrenadeLauncher::AMFG_GrenadeLauncher()
 {
 	MuzzleSocketName = "SCK_Muzzle";
 
-	TraceLenght = 500.0f;
+	TraceLenght = 1000.0f;
 }
 
 void AMFG_GrenadeLauncher::StartAction()
@@ -36,7 +38,7 @@ void AMFG_GrenadeLauncher::StartAction()
 		FVector TraceEndPoint = TraceEnd;
 
 		FHitResult HitResult;
-		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, EyeLocation, TraceEnd, ECC_Pawn, QueryParams);
+		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, EyeLocation, TraceEnd, COLLISION_ENEMY, QueryParams);
 
 		if (bHit)
 		{
@@ -50,6 +52,7 @@ void AMFG_GrenadeLauncher::StartAction()
 			FRotator MuzzleSocketRotation = CharacterMeshComponent->GetSocketRotation(MuzzleSocketName);
 			//FRotator NewRotation = EyeRotation + MuzzleSocketRotation;
 
+			DrawDebugLine(GetWorld(), EyeLocation, TraceEndPoint, FColor::White, false, 1.0f, 0.0f, 1.0f);
 			FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(MuzzleSocketLocation, TraceEndPoint);
 			AMFG_Projectile* CurrentProjectile = GetWorld()->SpawnActor<AMFG_Projectile>(ProjectileClass, MuzzleSocketLocation, NewRotation);
 		}

@@ -2,6 +2,7 @@
 
 
 #include "MFG_Character.h"
+#include "Project_MFG/Project_MFG.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -9,6 +10,10 @@
 #include "Objects/MFG_Activable.h"
 #include "Weapons/MFG_Weapon.h"
 #include "Weapons/MFG_Rifle.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
+#include "Components/CapsuleComponent.h" 
 
 // Sets default values
 AMFG_Character::AMFG_Character()
@@ -26,6 +31,7 @@ AMFG_Character::AMFG_Character()
 	DashForce = 10000.0f;
 	RollForce = 15000.0f;
 	FPSCameraSocketName = "SCK_Camera";
+	MeleeSocketName = "SCK_Melee";
 
 	bCanUseItem = false;
 
@@ -41,6 +47,11 @@ AMFG_Character::AMFG_Character()
 
 	TPSCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("TPS_CameraComponent"));
 	TPSCameraComponent->SetupAttachment(SpringArmComponent);
+
+	MeleeDetectorComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("MeleeDetectorComponent"));
+	MeleeDetectorComponent->SetupAttachment(GetMesh(), MeleeSocketName);
+	MeleeDetectorComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+	MeleeDetectorComponent->SetCollisionResponseToChannel(COLLISION_ENEMY, ECR_Overlap);
 
 	InteractiveObject = NULL;
 
@@ -65,9 +76,17 @@ FVector AMFG_Character::GetPawnViewLocation() const
 void AMFG_Character::BeginPlay()
 {
 	Super::BeginPlay();
-
+	InitializeReferences();
 	CreateInitialWeapon();
 
+}
+
+void AMFG_Character::InitializeReferences()
+{
+	if (IsValid(GetMesh()))
+	{
+		MyAnimInstance = GetMesh()->GetAnimInstance();
+	}
 }
 
 void AMFG_Character::MoveForward(float value)
@@ -90,7 +109,7 @@ void AMFG_Character::CrouchStart()
 
 	if (bIsCrouching)
 	{
-		Super:: Crouch();
+		Super::Crouch();
 	}
 	else
 	{
@@ -234,6 +253,18 @@ void AMFG_Character::SetWeaponBehavior()
 	}
 }
 
+void AMFG_Character::StartMelee()
+{
+	if (IsValid(MyAnimInstance) && IsValid(MeleeMontage))
+	{
+		MyAnimInstance->Montage_Play(MeleeMontage, 1.2f);
+	}
+}
+
+void AMFG_Character::StopMelee()
+{
+}
+
 void AMFG_Character::AddControllerPitchInput(float value)
 {
 	Super::AddControllerPitchInput(bIsLookInversion ? -value : value);
@@ -278,8 +309,11 @@ void AMFG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 	PlayerInputComponent->BindAction("WeaponAction", IE_Pressed, this, &AMFG_Character::StartWeaponAction);
 	PlayerInputComponent->BindAction("WeaponAction", IE_Released, this, &AMFG_Character::StopWeaponAction);
-	
+
 	PlayerInputComponent->BindAction("WeaponBehavior", IE_Pressed, this, &AMFG_Character::SetWeaponBehavior);
+
+	PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AMFG_Character::StartMelee);
+	PlayerInputComponent->BindAction("Melee", IE_Released, this, &AMFG_Character::StopMelee);
 
 }
 

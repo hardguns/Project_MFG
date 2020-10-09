@@ -11,6 +11,8 @@ class UCameraComponent;
 class UCharacterMovementComponent;
 class AMFG_InteractiveObject;
 class AMFG_Weapon;
+class UAnimMontage;
+class UAnimInstance;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_Character : public ACharacter
@@ -27,6 +29,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		UCameraComponent* TPSCameraComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		UCapsuleComponent* MeleeDetectorComponent;
 	
 protected:
 
@@ -36,8 +41,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
 		bool bIsLookInversion;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
 		FName FPSCameraSocketName;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Melee")
+		FName MeleeSocketName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
 		bool bIsCrouching;
@@ -72,6 +80,11 @@ protected:
 	UPROPERTY(BlueprintReadWrite, Category = "Weapon")
 		AMFG_Weapon* CurrentWeapon;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation")
+		UAnimMontage* MeleeMontage;
+
+	UAnimInstance* MyAnimInstance;
+
 public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Action")
@@ -95,6 +108,8 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	void InitializeReferences();
 
 	void MoveForward(float value);
 
@@ -123,6 +138,10 @@ protected:
 	void StopWeaponAction();
 
 	void SetWeaponBehavior();
+
+	void StartMelee();
+
+	void StopMelee();
 
 public:
 	// Called every frame
