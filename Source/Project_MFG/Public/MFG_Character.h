@@ -41,6 +41,27 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
 		bool bIsLookInversion;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Melee")
+		bool bIsDoingMelee;
+		
+	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
+		bool bCanUseWeapon;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee")
+		bool bCanMakeCombos;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Melee")
+		bool bIsComboEnable;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee")
+		float MeleeDamage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee", meta = (EditCondition = bCanMakeCombos, ClampMin = 1.0, UIMin = 1.0))
+		float MaxComboMultiplier;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Melee", meta = (EditCondition = bCanMakeCombos, ClampMin = 1.0, UIMin = 1.0))
+		float CurrentComboMultiplier;
+
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
 		FName FPSCameraSocketName;
 
@@ -123,6 +144,8 @@ protected:
 
 	void Run();
 
+	void StopRunning();
+
 	void SetCharacterSpeed();
 
 	void DoAction();
@@ -143,6 +166,9 @@ protected:
 
 	void StopMelee();
 
+	UFUNCTION()
+	void MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -157,5 +183,15 @@ public:
 	void AddKey(FName NewKey);
 
 	bool HasKey(FName KeyTag);
+
+	void SetMeleeDetectorCollision(ECollisionEnabled::Type NewCollisionState);
+
+	void SetMeleeState(bool NewState);
+
+	UFUNCTION(BlueprintCallable)
+	void SetComboEnable(bool NewState);
+
+	UFUNCTION(BlueprintCallable)
+	void ResetCombo();
 
 };

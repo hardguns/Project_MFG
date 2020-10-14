@@ -8,6 +8,7 @@
 
 class USceneComponent;
 class UStaticMeshComponent;
+class UBoxComponent;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_EPlatform : public AActor
@@ -23,6 +24,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UStaticMeshComponent* PlatformMeshComponent;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	UBoxComponent* PlatformColliderComponent;
 
 protected:
 	
@@ -52,6 +56,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	
+	void SetActiveState(bool NewState);
 
 };

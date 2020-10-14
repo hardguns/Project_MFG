@@ -67,6 +67,11 @@ void AMFG_InteractiveObject::NotifyActorEndOverlap(AActor* OtherActor)
 	}
 }
 
+void AMFG_InteractiveObject::SetObjectActiveState(bool NewState)
+{
+	bSwitchState = NewState;
+}
+
 void AMFG_InteractiveObject::Interact(AMFG_Character* InteractingCharacter)
 {
 	BP_Interact(InteractingCharacter);

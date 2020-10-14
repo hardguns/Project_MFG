@@ -7,13 +7,15 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Objects/MFG_InteractiveObject.h"
+#include "Objects/MFG_ElectricityGen.h"
 #include "Objects/MFG_Activable.h"
 #include "Weapons/MFG_Weapon.h"
 #include "Weapons/MFG_Rifle.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
-#include "Components/CapsuleComponent.h" 
+#include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AMFG_Character::AMFG_Character()
@@ -27,11 +29,15 @@ AMFG_Character::AMFG_Character()
 	bIsRolling = false;
 	bIsRunning = false;
 	bIsUsingBag = false;
+	bCanUseWeapon = true;
 	Speed = 150.0f;
 	DashForce = 10000.0f;
 	RollForce = 15000.0f;
 	FPSCameraSocketName = "SCK_Camera";
 	MeleeSocketName = "SCK_Melee";
+	MeleeDamage = 10.0f;
+	MaxComboMultiplier = 4.0f;
+	CurrentComboMultiplier = 1.0f;
 
 	bCanUseItem = false;
 
@@ -52,6 +58,7 @@ AMFG_Character::AMFG_Character()
 	MeleeDetectorComponent->SetupAttachment(GetMesh(), MeleeSocketName);
 	MeleeDetectorComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	MeleeDetectorComponent->SetCollisionResponseToChannel(COLLISION_ENEMY, ECR_Overlap);
+	MeleeDetectorComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	InteractiveObject = NULL;
 
@@ -78,7 +85,7 @@ void AMFG_Character::BeginPlay()
 	Super::BeginPlay();
 	InitializeReferences();
 	CreateInitialWeapon();
-
+	MeleeDetectorComponent->OnComponentBeginOverlap.AddDynamic(this, &AMFG_Character::MakeMeleeDamage);
 }
 
 void AMFG_Character::InitializeReferences()
@@ -104,7 +111,7 @@ void AMFG_Character::CrouchStart()
 	bIsCrouching = !bIsCrouching;
 	if (bIsRunning)
 	{
-		bIsRunning = false;
+		StopRunning();
 	}
 
 	if (bIsCrouching)
@@ -152,6 +159,13 @@ void AMFG_Character::Run()
 		Super::UnCrouch();
 		bIsCrouching = false;
 	}
+
+	SetCharacterSpeed();
+}
+
+void AMFG_Character::StopRunning()
+{
+	bIsRunning = false;
 
 	SetCharacterSpeed();
 }
@@ -225,8 +239,16 @@ void AMFG_Character::CreateInitialWeapon()
 
 void AMFG_Character::StartWeaponAction()
 {
-	bIsShooting = true;
-	bIsRunning = false;
+	if (!bCanUseWeapon)
+	{
+		return;
+	}
+
+	bIsShooting = true;	
+	if (bIsRunning)
+	{
+		StopRunning();
+	}
 
 	if (IsValid(CurrentWeapon))
 	{
@@ -236,6 +258,11 @@ void AMFG_Character::StartWeaponAction()
 
 void AMFG_Character::StopWeaponAction()
 {
+	if (!bCanUseWeapon)
+	{
+		return;
+	}
+
 	bIsShooting = false;
 	if (IsValid(CurrentWeapon))
 	{
@@ -255,14 +282,67 @@ void AMFG_Character::SetWeaponBehavior()
 
 void AMFG_Character::StartMelee()
 {
+	if (bIsRunning)
+	{
+		StopRunning();
+	}
+
+	if (bIsDoingMelee && !bCanMakeCombos)
+	{
+		return;
+	}
+
+	if (bCanMakeCombos)
+	{
+		if (bIsDoingMelee)
+		{
+			if (bIsComboEnable)
+			{
+				if (CurrentComboMultiplier < MaxComboMultiplier)
+				{
+					CurrentComboMultiplier++;
+					SetComboEnable(false);
+				}
+				else
+				{
+					
+				}
+			}
+			else
+			{
+				return;
+			}
+		}
+	}
+
+	if (IsValid(InteractiveObject))
+	{
+		AMFG_ElectricityGen* ElectricityGen = Cast<AMFG_ElectricityGen>(InteractiveObject);
+		if (IsValid(ElectricityGen))
+		{
+			ElectricityGen->ActivateElectricity();
+		}
+	}
+
 	if (IsValid(MyAnimInstance) && IsValid(MeleeMontage))
 	{
 		MyAnimInstance->Montage_Play(MeleeMontage, 1.2f);
 	}
+
+	SetMeleeState(true);
 }
 
 void AMFG_Character::StopMelee()
 {
+	
+}
+
+void AMFG_Character::MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (IsValid(OtherActor))
+	{
+		UGameplayStatics::ApplyPointDamage(OtherActor, MeleeDamage * CurrentComboMultiplier, SweepResult.Location, SweepResult, GetInstigatorController(), this, nullptr);
+	}
 }
 
 void AMFG_Character::AddControllerPitchInput(float value)
@@ -325,6 +405,28 @@ void AMFG_Character::AddKey(FName NewKey)
 bool AMFG_Character::HasKey(FName KeyTag)
 {
 	return DoorKeys.Contains(KeyTag);
+}
+
+void AMFG_Character::SetMeleeDetectorCollision(ECollisionEnabled::Type NewCollisionState)
+{
+	MeleeDetectorComponent->SetCollisionEnabled(NewCollisionState);
+}
+
+void AMFG_Character::SetMeleeState(bool NewState)
+{
+	bIsDoingMelee = NewState;
+	bCanUseWeapon = !NewState;
+}
+
+void AMFG_Character::SetComboEnable(bool NewState)
+{
+	bIsComboEnable = NewState;
+}
+
+void AMFG_Character::ResetCombo()
+{
+	SetComboEnable(false);
+	CurrentComboMultiplier = 1.0f;
 }
 
 

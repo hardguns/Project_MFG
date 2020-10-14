@@ -49,4 +49,6 @@ public:
 
 	virtual void NotifyActorEndOverlap(AActor* OtherActor) override;
 
+	void SetObjectActiveState(bool NewState);
+
 };

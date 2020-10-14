@@ -4,6 +4,7 @@
 #include "MFG_EPlatform.h"
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Components/BoxComponent.h"
 
 // Sets default values
 AMFG_EPlatform::AMFG_EPlatform()
@@ -16,6 +17,11 @@ AMFG_EPlatform::AMFG_EPlatform()
 
 	PlatformMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlatformMesh"));
 	PlatformMeshComponent->SetupAttachment(CustomRootComponent);
+
+	PlatformColliderComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("PlatformCollider"));
+	PlatformColliderComponent->SetupAttachment(CustomRootComponent);
+	PlatformColliderComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	PlatformColliderComponent->SetCollisionResponseToAllChannels(ECR_Block);
 
 	bIsActive = false;
 	bIsGoingUp = false;
@@ -40,6 +46,11 @@ void AMFG_EPlatform::Tick(float DeltaTime)
 	{
 	   Move();
 	}
+}
+
+void AMFG_EPlatform::SetActiveState(bool NewState)
+{
+	bIsActive = NewState;
 }
 
 void AMFG_EPlatform::Move()
