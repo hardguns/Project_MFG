@@ -49,8 +49,6 @@ void AMFG_GrenadeLauncher::StartAction()
 		if (IsValid(CharacterMeshComponent))
 		{
 			FVector MuzzleSocketLocation = CharacterMeshComponent->GetSocketLocation(MuzzleSocketName);
-			FRotator MuzzleSocketRotation = CharacterMeshComponent->GetSocketRotation(MuzzleSocketName);
-			//FRotator NewRotation = EyeRotation + MuzzleSocketRotation;
 
 			DrawDebugLine(GetWorld(), EyeLocation, TraceEndPoint, FColor::White, false, 1.0f, 0.0f, 1.0f);
 			FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(MuzzleSocketLocation, TraceEndPoint);

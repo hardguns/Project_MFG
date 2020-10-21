@@ -12,10 +12,12 @@
 #include "Weapons/MFG_Weapon.h"
 #include "Weapons/MFG_Rifle.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/MFG_HealthComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Core/MFG_GameMode.h"
 
 // Sets default values
 AMFG_Character::AMFG_Character()
@@ -60,6 +62,8 @@ AMFG_Character::AMFG_Character()
 	MeleeDetectorComponent->SetCollisionResponseToChannel(COLLISION_ENEMY, ECR_Overlap);
 	MeleeDetectorComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+	HealthComponent = CreateDefaultSubobject<UMFG_HealthComponent>(TEXT("HealthComponent"));
+
 	InteractiveObject = NULL;
 
 }
@@ -86,6 +90,8 @@ void AMFG_Character::BeginPlay()
 	InitializeReferences();
 	CreateInitialWeapon();
 	MeleeDetectorComponent->OnComponentBeginOverlap.AddDynamic(this, &AMFG_Character::MakeMeleeDamage);
+
+	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &AMFG_Character::OnHealthChange);
 }
 
 void AMFG_Character::InitializeReferences()
@@ -94,6 +100,8 @@ void AMFG_Character::InitializeReferences()
 	{
 		MyAnimInstance = GetMesh()->GetAnimInstance();
 	}
+
+	GameModeReference = Cast<AMFG_GameMode>(GetWorld()->GetAuthGameMode());
 }
 
 void AMFG_Character::MoveForward(float value)
@@ -272,6 +280,7 @@ void AMFG_Character::StopWeaponAction()
 
 void AMFG_Character::SetWeaponBehavior()
 {
+	StopWeaponAction();
 	AMFG_Rifle* RifleEquipped = Cast<AMFG_Rifle>(CurrentWeapon);
 	if (IsValid(RifleEquipped))
 	{
@@ -317,11 +326,12 @@ void AMFG_Character::StartMelee()
 
 	if (IsValid(InteractiveObject))
 	{
-		AMFG_ElectricityGen* ElectricityGen = Cast<AMFG_ElectricityGen>(InteractiveObject);
+		/*AMFG_ElectricityGen* ElectricityGen = Cast<AMFG_ElectricityGen>(InteractiveObject);
 		if (IsValid(ElectricityGen))
 		{
 			ElectricityGen->ActivateElectricity();
-		}
+		}*/
+		InteractiveObject->HitObject();
 	}
 
 	if (IsValid(MyAnimInstance) && IsValid(MeleeMontage))
@@ -342,6 +352,17 @@ void AMFG_Character::MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, A
 	if (IsValid(OtherActor))
 	{
 		UGameplayStatics::ApplyPointDamage(OtherActor, MeleeDamage * CurrentComboMultiplier, SweepResult.Location, SweepResult, GetInstigatorController(), this, nullptr);
+	}
+}
+
+void AMFG_Character::OnHealthChange(UMFG_HealthComponent* CurrentHealthComponent, AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
+{
+	if (HealthComponent->IsDead())
+	{
+		if (IsValid(GameModeReference))
+		{
+			GameModeReference->GameOver(this);
+		}
 	}
 }
 
@@ -428,6 +449,3 @@ void AMFG_Character::ResetCombo()
 	SetComboEnable(false);
 	CurrentComboMultiplier = 1.0f;
 }
-
-
-

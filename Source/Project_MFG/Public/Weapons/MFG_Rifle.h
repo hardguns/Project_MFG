@@ -36,8 +36,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon options")
 		float TimeBetweenShots;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon options")
-		FTimerHandle TimerHandle_HandleAutomaticShot;
+	FTimerHandle TimerHandle_HandleAutomaticShot;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 		FName MuzzleSocketName;

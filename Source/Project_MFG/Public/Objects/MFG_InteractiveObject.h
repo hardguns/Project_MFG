@@ -51,4 +51,6 @@ public:
 
 	void SetObjectActiveState(bool NewState);
 
+	virtual void HitObject();
+
 };

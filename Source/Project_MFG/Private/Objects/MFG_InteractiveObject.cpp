@@ -72,6 +72,11 @@ void AMFG_InteractiveObject::SetObjectActiveState(bool NewState)
 	bSwitchState = NewState;
 }
 
+void AMFG_InteractiveObject::HitObject()
+{
+	
+}
+
 void AMFG_InteractiveObject::Interact(AMFG_Character* InteractingCharacter)
 {
 	BP_Interact(InteractingCharacter);

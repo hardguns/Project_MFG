@@ -83,10 +83,10 @@ void AMFG_Projectile::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (GetLifeSpan() <= 0)
+	/*if (GetLifeSpan() <= 0)
 	{
 		OnDetonate();
-	}
+	}*/
 
 }
 

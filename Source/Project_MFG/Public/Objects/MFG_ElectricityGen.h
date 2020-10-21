@@ -44,6 +44,8 @@ protected:
 	virtual void Interact(AMFG_Character* OtherActor) override;
 
 	virtual void StopInteract(AMFG_Character* OtherActor) override;
+
+	virtual void HitObject() override;
 	
 	
 };

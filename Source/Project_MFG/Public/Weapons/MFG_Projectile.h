@@ -41,8 +41,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
 		TSubclassOf<UDamageType> DamageType;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Timer")
-		FTimerHandle TimerHandle_HandleExplosion;
+	FTimerHandle TimerHandle_HandleExplosion;
 
 public:	
 	// Sets default values for this actor's properties

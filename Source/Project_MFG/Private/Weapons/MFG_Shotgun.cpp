@@ -2,6 +2,7 @@
 
 
 #include "Weapons/MFG_Shotgun.h"
+#include "Project_MFG/Project_MFG.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
 #include "GameFramework/Character.h"
@@ -73,7 +74,7 @@ void AMFG_Shotgun::ActionShot()
 				DrawDebugLine(GetWorld(), EyeLocation, NewEndTrace, FColor::Orange, false, 2.0f, 0, 1.0f);
 			}
 
-			bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, EyeLocation, NewEndTrace, ECC_Pawn, QueryParams);
+			bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, EyeLocation, NewEndTrace, COLLISION_WEAPON, QueryParams);
 			if (bHit)
 			{
 				AActor* HitActor = HitResult.GetActor();

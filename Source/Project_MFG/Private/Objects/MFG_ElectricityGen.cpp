@@ -42,6 +42,13 @@ void AMFG_ElectricityGen::StopInteract(AMFG_Character* OtherActor)
 	}
 }
 
+void AMFG_ElectricityGen::HitObject()
+{
+	Super::HitObject();
+
+	ActivateElectricity();
+}
+
 void AMFG_ElectricityGen::ActivateElectricity()
 {
 	if (!bSwitchState)
