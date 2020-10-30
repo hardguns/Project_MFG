@@ -13,11 +13,15 @@
 #include "Weapons/MFG_Rifle.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/MFG_HealthComponent.h"
+#include "Components/MFG_EffectsComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
-#include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Core/MFG_GameMode.h"
+#include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Components/ActorComponent.h"
 
 // Sets default values
 AMFG_Character::AMFG_Character()
@@ -62,7 +66,12 @@ AMFG_Character::AMFG_Character()
 	MeleeDetectorComponent->SetCollisionResponseToChannel(COLLISION_ENEMY, ECR_Overlap);
 	MeleeDetectorComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+	BurningEffectComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("BurningEffectComponent"));
+	BurningEffectComponent->SetupAttachment(GetCapsuleComponent());
+
 	HealthComponent = CreateDefaultSubobject<UMFG_HealthComponent>(TEXT("HealthComponent"));
+
+	EffectsComponent = CreateDefaultSubobject<UMFG_EffectsComponent>(TEXT("EffectsComponent"));
 
 	InteractiveObject = NULL;
 
@@ -92,6 +101,8 @@ void AMFG_Character::BeginPlay()
 	MeleeDetectorComponent->OnComponentBeginOverlap.AddDynamic(this, &AMFG_Character::MakeMeleeDamage);
 
 	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &AMFG_Character::OnHealthChange);
+
+	EffectsComponent->OnBurningStateChangeDelegate.AddDynamic(this, &AMFG_Character::OnBurningStateChange);
 }
 
 void AMFG_Character::InitializeReferences()
@@ -362,6 +373,21 @@ void AMFG_Character::OnHealthChange(UMFG_HealthComponent* CurrentHealthComponent
 		if (IsValid(GameModeReference))
 		{
 			GameModeReference->GameOver(this);
+		}
+	}
+}
+
+void AMFG_Character::OnBurningStateChange(UMFG_EffectsComponent* CurrentEffectsComponent, AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
+{
+	if (EffectsComponent->IsBurning())
+	{
+		BurningEffectComponent->SetVisibility(true);
+	}
+	else
+	{
+		if (IsValid(BurningEffectComponent))
+		{
+			BurningEffectComponent->SetVisibility(false);
 		}
 	}
 }

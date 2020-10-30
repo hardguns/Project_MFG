@@ -14,7 +14,9 @@ class AMFG_Weapon;
 class UAnimMontage;
 class UAnimInstance;
 class UMFG_HealthComponent;
+class UMFG_EffectsComponent;
 class AMFG_GameMode;
+class UParticleSystem;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_Character : public ACharacter
@@ -37,6 +39,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		UMFG_HealthComponent* HealthComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		UMFG_EffectsComponent* EffectsComponent;
 	
 protected:
 
@@ -112,6 +117,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation")
 		UAnimMontage* MeleeMontage;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+		UParticleSystemComponent* BurningEffectComponent;
+
 	UAnimInstance* MyAnimInstance;
 
 	AMFG_GameMode* GameModeReference;
@@ -181,6 +189,9 @@ protected:
 
 	UFUNCTION()
 	void OnHealthChange(UMFG_HealthComponent* CurrentHealthComponent, AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
+
+	UFUNCTION()
+	void OnBurningStateChange(UMFG_EffectsComponent* CurrentEffectsComponent, AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
 
 public:
 	// Called every frame

@@ -15,7 +15,7 @@
 
 AMFG_Shotgun::AMFG_Shotgun()
 {
-	Damage = 15;
+	Damage = 60;
 	TraceLenght = 850.0f;
 	MuzzleSocketName = "SCK_Muzzle";
 	PelletsNumber = 5;
@@ -58,6 +58,7 @@ void AMFG_Shotgun::ActionShot()
 		QueryParams.AddIgnoredActor(this);
 		QueryParams.AddIgnoredActor(CurrentOwner);
 		QueryParams.bTraceComplex = true;
+		int SuccessfulHits = 0;
 
 		for (int i = 0; i < PelletsNumber; i++)
 		{
@@ -81,7 +82,7 @@ void AMFG_Shotgun::ActionShot()
 
 				if (IsValid(HitActor))
 				{
-					UGameplayStatics::ApplyPointDamage(HitActor, Damage, ShotDirection, HitResult, CurrentOwner->GetInstigatorController(), this, DamageType);
+					UGameplayStatics::ApplyPointDamage(HitActor, CalculateDamage(1), ShotDirection, HitResult, CurrentOwner->GetInstigatorController(), this, DamageType);
 				}
 
 				TraceEndPoint = HitResult.ImpactPoint;
@@ -93,7 +94,7 @@ void AMFG_Shotgun::ActionShot()
 			}
 		}
 
-		AMFG_Character* MainCharacter = Cast<AMFG_Character>(CurrentOwner);
+		/*AMFG_Character* MainCharacter = Cast<AMFG_Character>(CurrentOwner);
 		if (IsValid(MainCharacter))
 		{
 			FVector MovementDirection = -MainCharacter->GetRootComponent()->GetForwardVector();
@@ -101,7 +102,7 @@ void AMFG_Shotgun::ActionShot()
 			{
 				MainCharacter->LaunchCharacter(MovementDirection * ShotForce, true, true);
 			}
-		}
+		}*/
 
 		if (IsValid(MuzzleEffect))
 		{
@@ -123,4 +124,11 @@ void AMFG_Shotgun::ActionShot()
 			}
 		}
 	}
+}
+
+float AMFG_Shotgun::CalculateDamage(int numberOfHits)
+{
+	float DamageDeal = (Damage * numberOfHits) / PelletsNumber;
+
+	return DamageDeal;
 }

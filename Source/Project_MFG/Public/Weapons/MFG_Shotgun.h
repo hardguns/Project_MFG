@@ -60,4 +60,6 @@ protected:
 
 	void ActionShot();
 
+	float CalculateDamage(int numberOfHits);
+
 };

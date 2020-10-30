@@ -8,7 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FOnHealthChangeSignature, UMFG_HealthComponent*, HealthComponent, AActor*, DamagedActor, float, Damage, const UDamageType*, DamageType, AController*, InstigatedBy, AActor*, DamageCauser);
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS( ClassGroup=(MFG), meta=(BlueprintSpawnableComponent) )
 class PROJECT_MFG_API UMFG_HealthComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -38,6 +38,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool IsDead() const { return bIsDead; };
+
+	UFUNCTION()
+	float GetCurrentHealth() { return Health; };
 
 public:
 
