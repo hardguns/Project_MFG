@@ -37,11 +37,14 @@ AMFG_Character::AMFG_Character()
 	bIsUsingBag = false;
 	bCanUseWeapon = true;
 	Speed = 150.0f;
+	WalkSpeed = 600.0f;
+	RunSpeed = 1300.0f;
 	DashForce = 10000.0f;
 	RollForce = 15000.0f;
 	FPSCameraSocketName = "SCK_Camera";
 	MeleeSocketName = "SCK_Melee";
 	MeleeDamage = 10.0f;
+	MeleePlayRate = 1.2f;
 	MaxComboMultiplier = 4.0f;
 	CurrentComboMultiplier = 1.0f;
 
@@ -69,9 +72,24 @@ AMFG_Character::AMFG_Character()
 	BurningEffectComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("BurningEffectComponent"));
 	BurningEffectComponent->SetupAttachment(GetCapsuleComponent());
 
+	UltimateWeaponEffectComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("UltimateWeaponEffectComponent"));
+	UltimateWeaponEffectComponent->SetupAttachment(MeleeDetectorComponent);
+
 	HealthComponent = CreateDefaultSubobject<UMFG_HealthComponent>(TEXT("HealthComponent"));
 
 	EffectsComponent = CreateDefaultSubobject<UMFG_EffectsComponent>(TEXT("EffectsComponent"));
+
+	MaxUltimateXP = 100.0f;
+	MaxUltimateDuration = 8.0f;
+	UltimateFrequency = 0.5f;
+	bUltimateWithTick = true;
+
+	UltimatePlayRate = 2.0f;
+	PlayRate = 1.0f;
+	UltimateShotFrequency = 0.25;
+	UltimateWalkSpeed = RunSpeed;
+	UltimateRunSpeed = 2200.0f;
+	UltimateWeaponDamageMultiplier = 2.0f;
 
 	InteractiveObject = NULL;
 
@@ -193,12 +211,12 @@ void AMFG_Character::SetCharacterSpeed()
 {
 	if (bIsRunning)
 	{
-		Speed = 1300;
+		Speed = bIsUsingUltimate ? UltimateRunSpeed : RunSpeed;
 		GetCharacterMovement()->MaxWalkSpeed = Speed;
 	}
 	else
 	{
-		Speed = 600;
+		Speed = bIsUsingUltimate ? UltimateWalkSpeed : WalkSpeed;
 		GetCharacterMovement()->MaxWalkSpeed = Speed;
 	}
 }
@@ -250,6 +268,7 @@ void AMFG_Character::CreateInitialWeapon()
 		CurrentWeapon = GetWorld()->SpawnActor<AMFG_Weapon>(InitialWeaponClass, GetActorLocation(), GetActorRotation());
 		if (IsValid(CurrentWeapon))
 		{
+			WeaponInitialDamage = CurrentWeapon->GetCurrentDamage();
 			CurrentWeapon->SetCharacterOwner(this);
 			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 		}
@@ -263,7 +282,7 @@ void AMFG_Character::StartWeaponAction()
 		return;
 	}
 
-	bIsShooting = true;	
+	bIsShooting = true;
 	if (bIsRunning)
 	{
 		StopRunning();
@@ -272,6 +291,17 @@ void AMFG_Character::StartWeaponAction()
 	if (IsValid(CurrentWeapon))
 	{
 		CurrentWeapon->StartAction();
+
+		if (bIsUsingUltimate)
+		{
+			CurrentWeapon->SetCurrentDamage(WeaponInitialDamage * UltimateWeaponDamageMultiplier);
+
+			AMFG_Rifle* RifleEquipped = Cast<AMFG_Rifle>(CurrentWeapon);
+			if (IsValid(RifleEquipped))
+			{
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle_AutomaticShot, CurrentWeapon, &AMFG_Weapon::StartAction, UltimateShotFrequency, true);
+			}
+		}
 	}
 }
 
@@ -286,17 +316,31 @@ void AMFG_Character::StopWeaponAction()
 	if (IsValid(CurrentWeapon))
 	{
 		CurrentWeapon->StopAction();
+
+		if (bIsUsingUltimate)
+		{
+			CurrentWeapon->SetCurrentDamage(WeaponInitialDamage);
+
+			AMFG_Rifle* RifleEquipped = Cast<AMFG_Rifle>(CurrentWeapon);
+			if (IsValid(RifleEquipped))
+			{
+				GetWorld()->GetTimerManager().ClearTimer(TimerHandle_AutomaticShot);
+			}
+		}
 	}
 }
 
 void AMFG_Character::SetWeaponBehavior()
 {
-	StopWeaponAction();
-	AMFG_Rifle* RifleEquipped = Cast<AMFG_Rifle>(CurrentWeapon);
-	if (IsValid(RifleEquipped))
+	if (!bIsUsingUltimate)
 	{
-		RifleEquipped->bIsAutomatic = !RifleEquipped->bIsAutomatic;
-		//bIsWeaponAutomatic = !bIsWeaponAutomatic;
+		StopWeaponAction();
+		AMFG_Rifle* RifleEquipped = Cast<AMFG_Rifle>(CurrentWeapon);
+		if (IsValid(RifleEquipped))
+		{
+			RifleEquipped->bIsAutomatic = !RifleEquipped->bIsAutomatic;
+			//bIsWeaponAutomatic = !bIsWeaponAutomatic;
+		}
 	}
 }
 
@@ -325,7 +369,7 @@ void AMFG_Character::StartMelee()
 				}
 				else
 				{
-					
+
 				}
 			}
 			else
@@ -347,7 +391,7 @@ void AMFG_Character::StartMelee()
 
 	if (IsValid(MyAnimInstance) && IsValid(MeleeMontage))
 	{
-		MyAnimInstance->Montage_Play(MeleeMontage, 1.2f);
+		MyAnimInstance->Montage_Play(MeleeMontage, bIsUsingUltimate ? UltimatePlayRate : MeleePlayRate);
 	}
 
 	SetMeleeState(true);
@@ -355,7 +399,42 @@ void AMFG_Character::StartMelee()
 
 void AMFG_Character::StopMelee()
 {
-	
+
+}
+
+void AMFG_Character::StartUltimate()
+{
+	if (bCanUseUltimate && !bIsUsingUltimate)
+	{
+		CurrentUltimateDuration = MaxUltimateDuration;
+
+		bCanUseUltimate = false;
+
+		if (IsValid(MyAnimInstance) && IsValid(UltimateMontage))
+		{
+			GetCharacterMovement()->MaxWalkSpeed = 0.0f;
+			bCanUseWeapon = false;
+
+			if (IsValid(UltimateWeaponEffectComponent))
+			{
+				UltimateWeaponEffectComponent->SetVisibility(true);
+			}
+
+			const float StartUltimateMontageDuration = MyAnimInstance->Montage_Play(UltimateMontage);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle_BeginUltimateBehavior, this, &AMFG_Character::BeginUltimateBehavior, StartUltimateMontageDuration, false);
+		}
+		else
+		{
+			BeginUltimateBehavior();
+		}
+
+		BP_StartUltimate();
+	}
+}
+
+void AMFG_Character::StopUltimate()
+{
+
 }
 
 void AMFG_Character::MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -402,10 +481,10 @@ void AMFG_Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//if (bIsShooting && bIsWeaponAutomatic)
-	//{
-	//	StartWeaponAction();
-	//}
+	if (bUltimateWithTick && bIsUsingUltimate)
+	{
+		UpdateUltimateDuration(DeltaTime);
+	}
 
 }
 
@@ -442,6 +521,9 @@ void AMFG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AMFG_Character::StartMelee);
 	PlayerInputComponent->BindAction("Melee", IE_Released, this, &AMFG_Character::StopMelee);
 
+	PlayerInputComponent->BindAction("Ultimate", IE_Pressed, this, &AMFG_Character::StartUltimate);
+	PlayerInputComponent->BindAction("Ultimate", IE_Released, this, &AMFG_Character::StopUltimate);
+
 }
 
 void AMFG_Character::AddKey(FName NewKey)
@@ -474,4 +556,69 @@ void AMFG_Character::ResetCombo()
 {
 	SetComboEnable(false);
 	CurrentComboMultiplier = 1.0f;
+}
+
+void AMFG_Character::GainUltimateXP(float XPGained)
+{
+	if (bCanUseUltimate || bIsUsingUltimate)
+	{
+		return;
+	}
+
+	CurrentUltimateXP = FMath::Clamp(CurrentUltimateXP + XPGained, 0.0f, MaxUltimateXP);
+
+	if (CurrentUltimateXP == MaxUltimateXP)
+	{
+		bCanUseUltimate = true;
+	}
+
+	BP_GainUltimateXP(XPGained);
+}
+
+void AMFG_Character::UpdateUltimateDuration(float Value)
+{
+	CurrentUltimateDuration = FMath::Clamp(CurrentUltimateDuration - Value, 0.0f, MaxUltimateDuration);
+
+	BP_UpdateUltimateDuration(Value);
+
+	if (CurrentUltimateDuration == 0.0f)
+	{
+		bIsUsingUltimate = false;
+
+		SetCharacterSpeed();
+		PlayRate = 1.0f;
+		CurrentWeapon->SetCurrentDamage(WeaponInitialDamage);
+
+		if (IsValid(UltimateWeaponEffectComponent))
+		{
+			UltimateWeaponEffectComponent->SetVisibility(false);
+		}
+
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_AutomaticShot);
+
+		if (!bUltimateWithTick)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(TimerHandle_Ultimate);
+		}
+
+		BP_StopUltimate();
+	}
+}
+
+void AMFG_Character::UpdateUltimateDurationWithTimer()
+{
+	UpdateUltimateDuration(UltimateFrequency);
+}
+
+void AMFG_Character::BeginUltimateBehavior()
+{
+	bCanUseWeapon = true;
+	bIsUsingUltimate = true;
+	SetCharacterSpeed();
+	PlayRate = UltimatePlayRate;
+
+	if (!bUltimateWithTick)
+	{
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle_Ultimate, this, &AMFG_Character::UpdateUltimateDurationWithTimer, UltimateFrequency, true);
+	}
 }

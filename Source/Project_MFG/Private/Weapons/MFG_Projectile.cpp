@@ -101,3 +101,8 @@ void AMFG_Projectile::NotifyActorBeginOverlap(AActor* OtherActor)
 	}
 }
 
+void AMFG_Projectile::SetNewDamageValue(float NewDamage)
+{
+	Damage = NewDamage;
+}
+

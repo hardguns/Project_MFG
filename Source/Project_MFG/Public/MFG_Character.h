@@ -66,6 +66,15 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Game Over")
 		bool bHasToDestroy;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate")
+		bool bUltimateWithTick;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Ultimate")
+		bool bCanUseUltimate;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Ultimate")
+		bool bIsUsingUltimate;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee")
 		float MeleeDamage;
 
@@ -74,6 +83,51 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Melee", meta = (EditCondition = bCanMakeCombos, ClampMin = 1.0, UIMin = 1.0))
 		float CurrentComboMultiplier;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (ClampMin = 0.0, UIMin = 0.0))
+		float WalkSpeed;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (ClampMin = 0.0, UIMin = 0.0))
+		float RunSpeed;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate|Abilities", meta = (ClampMin = 0.0, UIMin = 0.0))
+		float UltimateWalkSpeed;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate|Abilities", meta = (ClampMin = 0.0, UIMin = 0.0))
+		float UltimateRunSpeed;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate", meta = (ClampMin = 0.0, UIMin = 0.0))
+		float MaxUltimateXP;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Ultimate")
+		float CurrentUltimateXP;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate|Time", meta = (ClampMin = 0.0, UIMin = 0.0))
+		float MaxUltimateDuration;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Ultimate|Time")
+		float CurrentUltimateDuration;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate|Time")
+		float UltimateFrequency;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate|Abilities", meta = (ClampMin = 0.0, UIMin = 0.0))
+		float UltimatePlayRate;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate|Abilities", meta = (ClampMin = 0.0, UIMin = 0.0))
+		float WeaponInitialDamage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate|Abilities", meta = (ClampMin = 0.0, UIMin = 0.0))
+		float UltimateWeaponDamageMultiplier;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Ultimate|Abilities", meta = (ClampMin = 0.0, UIMin = 0.0))
+		float PlayRate;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Melee", meta = (ClampMin = 0.0, UIMin = 0.0))
+		float MeleePlayRate;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate|Abilities", meta = (ClampMin = 0.0, UIMin = 0.0))
+		float UltimateShotFrequency;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
 		FName FPSCameraSocketName;
@@ -117,12 +171,24 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation")
 		UAnimMontage* MeleeMontage;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation")
+		UAnimMontage* UltimateMontage;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 		UParticleSystemComponent* BurningEffectComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+		UParticleSystemComponent* UltimateWeaponEffectComponent;
 
 	UAnimInstance* MyAnimInstance;
 
 	AMFG_GameMode* GameModeReference;
+
+	FTimerHandle TimerHandle_Ultimate;
+
+	FTimerHandle TimerHandle_AutomaticShot;
+
+	FTimerHandle TimerHandle_BeginUltimateBehavior;
 
 public:
 
@@ -184,6 +250,10 @@ protected:
 
 	void StopMelee();
 
+	void StartUltimate();
+
+	void StopUltimate();
+
 	UFUNCTION()
 	void MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
@@ -219,5 +289,34 @@ public:
 	void ResetCombo();
 
 	bool HasToDestroy() { return bHasToDestroy; };
+
+	bool GetIsUsingUltimate() { return bIsUsingUltimate; };
+
+	float GetMultiplier() { return UltimateWeaponDamageMultiplier; };
+
+	UFUNCTION(BlueprintCallable)
+	void GainUltimateXP(float XPGained);
+
+	void UpdateUltimateDuration(float Value);
+
+	void UpdateUltimateDurationWithTimer();
+
+	void BeginUltimateBehavior();
+
+protected:
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void BP_GainUltimateXP(float XPGained);
+	
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void BP_StartUltimate();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void BP_StopUltimate();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void BP_UpdateUltimateDuration(float Value);
+
+	
 
 };

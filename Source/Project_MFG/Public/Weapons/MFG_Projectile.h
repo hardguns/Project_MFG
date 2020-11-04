@@ -58,4 +58,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
+
+	float GetDamageValue(){ return Damage; };
+
+	void SetNewDamageValue(float NewDamage);
 };

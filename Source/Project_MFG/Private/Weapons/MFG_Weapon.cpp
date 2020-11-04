@@ -46,3 +46,8 @@ void AMFG_Weapon::SetCharacterOwner(ACharacter* NewOwner)
 	}
 }
 
+void AMFG_Weapon::SetCurrentDamage(float NewDamage)
+{
+	Damage = NewDamage;
+}
+

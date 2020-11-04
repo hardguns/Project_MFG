@@ -51,4 +51,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetCharacterOwner(ACharacter* NewOwner);
 
+	void SetCurrentDamage(float NewDamage);
+
+	float GetCurrentDamage() { return Damage; };
+
 };
