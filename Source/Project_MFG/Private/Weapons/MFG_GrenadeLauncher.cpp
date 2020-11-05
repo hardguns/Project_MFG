@@ -54,16 +54,16 @@ void AMFG_GrenadeLauncher::StartAction()
 			DrawDebugLine(GetWorld(), EyeLocation, TraceEndPoint, FColor::White, false, 1.0f, 0.0f, 1.0f);
 			FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(MuzzleSocketLocation, TraceEndPoint);
 			AMFG_Projectile* CurrentProjectile = GetWorld()->SpawnActor<AMFG_Projectile>(ProjectileClass, MuzzleSocketLocation, NewRotation);
-			/*CurrentProjectile->SetNewDamageValue(Damage);*/
+			CurrentProjectile->SetNewDamageValue(Damage);
 
-			AMFG_Character* Character = Cast<AMFG_Character>(CurrentOwnerCharacter);
+			/*AMFG_Character* Character = Cast<AMFG_Character>(CurrentOwnerCharacter);
 			if (IsValid(Character))
 			{
 				if (Character->GetIsUsingUltimate())
 				{
 					CurrentProjectile->SetNewDamageValue(Damage * Character->GetMultiplier());
 				}
-			}
+			}*/
 		}
 	}
 }

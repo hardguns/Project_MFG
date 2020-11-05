@@ -290,11 +290,13 @@ void AMFG_Character::StartWeaponAction()
 
 	if (IsValid(CurrentWeapon))
 	{
+		CurrentWeapon->SetCurrentDamage(bIsUsingUltimate ? WeaponInitialDamage * UltimateWeaponDamageMultiplier : WeaponInitialDamage);
+
 		CurrentWeapon->StartAction();
 
 		if (bIsUsingUltimate)
 		{
-			CurrentWeapon->SetCurrentDamage(WeaponInitialDamage * UltimateWeaponDamageMultiplier);
+			//CurrentWeapon->SetCurrentDamage(WeaponInitialDamage * UltimateWeaponDamageMultiplier);
 
 			AMFG_Rifle* RifleEquipped = Cast<AMFG_Rifle>(CurrentWeapon);
 			if (IsValid(RifleEquipped))
@@ -583,6 +585,7 @@ void AMFG_Character::UpdateUltimateDuration(float Value)
 
 	if (CurrentUltimateDuration == 0.0f)
 	{
+		CurrentUltimateXP = 0.0f;
 		bIsUsingUltimate = false;
 
 		SetCharacterSpeed();
