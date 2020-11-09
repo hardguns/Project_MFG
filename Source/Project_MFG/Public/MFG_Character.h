@@ -17,6 +17,7 @@ class UMFG_HealthComponent;
 class UMFG_EffectsComponent;
 class AMFG_GameMode;
 class UParticleSystem;
+class AMFG_LaserProjectile;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_Character : public ACharacter
@@ -75,6 +76,12 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Ultimate")
 		bool bIsUsingUltimate;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Ability")
+		bool bCanUseAbility;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Ability")
+		bool bIsUsingAbility;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee")
 		float MeleeDamage;
 
@@ -129,11 +136,35 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate|Abilities", meta = (ClampMin = 0.0, UIMin = 0.0))
 		float UltimateShotFrequency;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
+		float LaserTraceLenght;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
+		float LaserReloadTimeSpeed;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability", meta = (ClampMin = 0.0, UIMin = 0.0))
+		float LaserShotsLeft;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability", meta = (ClampMin = 0.0, UIMin = 0.0))
+		float MaximumLaserShots;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability")
+		TSubclassOf<AMFG_LaserProjectile> LaserProjectileClass;
+
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
 		FName FPSCameraSocketName;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Melee")
 		FName MeleeSocketName;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+		FName EffectsSocketName;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Ability")
+		FName AbilitySocketName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
+		FName TraceParamName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
 		bool bIsCrouching;
@@ -172,12 +203,24 @@ protected:
 		UAnimMontage* MeleeMontage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation")
+		UAnimMontage* AbilityMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation")
 		UAnimMontage* UltimateMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+		UParticleSystem* BurningEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+		UParticleSystem* AbilityEffect;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 		UParticleSystemComponent* BurningEffectComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+		UParticleSystem* UltimateWeaponEffect;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Effects")
 		UParticleSystemComponent* UltimateWeaponEffectComponent;
 
 	UAnimInstance* MyAnimInstance;
@@ -189,6 +232,8 @@ protected:
 	FTimerHandle TimerHandle_AutomaticShot;
 
 	FTimerHandle TimerHandle_BeginUltimateBehavior;
+
+	FTimerHandle TimerHandle_ReloadAbilityShots;
 
 public:
 
@@ -250,9 +295,15 @@ protected:
 
 	void StopMelee();
 
+	void StartAbility();
+
+	void StopAbility();
+
 	void StartUltimate();
 
 	void StopUltimate();
+
+	void ReloadLaser();
 
 	UFUNCTION()
 	void MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -281,6 +332,10 @@ public:
 	void SetMeleeDetectorCollision(ECollisionEnabled::Type NewCollisionState);
 
 	void SetMeleeState(bool NewState);
+
+	void SetAbilityState(bool NewState);
+
+	void SetAbilityBehavior();
 
 	UFUNCTION(BlueprintCallable)
 	void SetComboEnable(bool NewState);
@@ -315,8 +370,12 @@ protected:
 	void BP_StopUltimate();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-	void BP_UpdateUltimateDuration(float Value);
+		void BP_StartAbility();
 
-	
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+		void BP_StopAbility();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void BP_UpdateUltimateDuration(float Value);
 
 };

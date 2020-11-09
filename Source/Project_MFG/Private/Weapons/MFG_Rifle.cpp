@@ -5,6 +5,7 @@
 #include "Project_MFG/Project_MFG.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/Character.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -102,6 +103,7 @@ void AMFG_Rifle::ActionShot()
 			if (IsValid(CharacterMeshComponent))
 			{
 				FVector MuzzleSocketLocation = CharacterMeshComponent->GetSocketLocation(MuzzleSocketName);
+				//FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(MuzzleSocketLocation, TraceEndPoint);
 				UParticleSystemComponent* TraceComponent = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), TraceEffect, MuzzleSocketLocation);
 
 				if (IsValid(TraceComponent))

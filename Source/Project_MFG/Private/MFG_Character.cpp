@@ -18,10 +18,12 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Core/MFG_GameMode.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/ActorComponent.h"
+#include "Weapons/MFG_LaserProjectile.h"
 
 // Sets default values
 AMFG_Character::AMFG_Character()
@@ -43,6 +45,7 @@ AMFG_Character::AMFG_Character()
 	RollForce = 15000.0f;
 	FPSCameraSocketName = "SCK_Camera";
 	MeleeSocketName = "SCK_Melee";
+	EffectsSocketName = "Aim_Target";
 	MeleeDamage = 10.0f;
 	MeleePlayRate = 1.2f;
 	MaxComboMultiplier = 4.0f;
@@ -72,9 +75,6 @@ AMFG_Character::AMFG_Character()
 	BurningEffectComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("BurningEffectComponent"));
 	BurningEffectComponent->SetupAttachment(GetCapsuleComponent());
 
-	UltimateWeaponEffectComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("UltimateWeaponEffectComponent"));
-	UltimateWeaponEffectComponent->SetupAttachment(MeleeDetectorComponent);
-
 	HealthComponent = CreateDefaultSubobject<UMFG_HealthComponent>(TEXT("HealthComponent"));
 
 	EffectsComponent = CreateDefaultSubobject<UMFG_EffectsComponent>(TEXT("EffectsComponent"));
@@ -90,6 +90,14 @@ AMFG_Character::AMFG_Character()
 	UltimateWalkSpeed = RunSpeed;
 	UltimateRunSpeed = 2200.0f;
 	UltimateWeaponDamageMultiplier = 2.0f;
+
+	bCanUseAbility = true;
+	bIsUsingAbility = false;
+	LaserShotsLeft = 3.0f;
+	LaserTraceLenght = 8000.0f;
+	AbilitySocketName = "Muzzle_05";
+	LaserReloadTimeSpeed = 3.0f;
+	MaximumLaserShots = 3.0f;
 
 	InteractiveObject = NULL;
 
@@ -383,11 +391,6 @@ void AMFG_Character::StartMelee()
 
 	if (IsValid(InteractiveObject))
 	{
-		/*AMFG_ElectricityGen* ElectricityGen = Cast<AMFG_ElectricityGen>(InteractiveObject);
-		if (IsValid(ElectricityGen))
-		{
-			ElectricityGen->ActivateElectricity();
-		}*/
 		InteractiveObject->HitObject();
 	}
 
@@ -400,6 +403,29 @@ void AMFG_Character::StartMelee()
 }
 
 void AMFG_Character::StopMelee()
+{
+
+}
+
+void AMFG_Character::StartAbility()
+{
+	if (LaserShotsLeft > 0 && bCanUseAbility && !bIsUsingAbility)
+	{
+		SetAbilityState(true);
+		if (IsValid(MyAnimInstance) && IsValid(AbilityMontage))
+		{
+			MyAnimInstance->Montage_Play(AbilityMontage);
+		}
+
+		LaserShotsLeft--;
+
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ReloadAbilityShots, this, &AMFG_Character::ReloadLaser, LaserReloadTimeSpeed, true);
+
+		BP_StartAbility();
+	}
+}
+
+void AMFG_Character::StopAbility()
 {
 
 }
@@ -417,9 +443,9 @@ void AMFG_Character::StartUltimate()
 			GetCharacterMovement()->MaxWalkSpeed = 0.0f;
 			bCanUseWeapon = false;
 
-			if (IsValid(UltimateWeaponEffectComponent))
+			if (IsValid(UltimateWeaponEffect))
 			{
-				UltimateWeaponEffectComponent->SetVisibility(true);
+				UltimateWeaponEffectComponent = UGameplayStatics::SpawnEmitterAttached(UltimateWeaponEffect, GetMesh(), MeleeSocketName);
 			}
 
 			const float StartUltimateMontageDuration = MyAnimInstance->Montage_Play(UltimateMontage);
@@ -437,6 +463,56 @@ void AMFG_Character::StartUltimate()
 void AMFG_Character::StopUltimate()
 {
 
+}
+
+void AMFG_Character::SetAbilityBehavior()
+{
+	AActor* CurrentCharacterActor = GetOwner();
+
+	if (IsValid(CurrentCharacterActor))
+	{
+		FVector EyeLocation;
+		FRotator EyeRotation;
+
+		CurrentCharacterActor->GetActorEyesViewPoint(EyeLocation, EyeRotation);
+
+		FVector ShotDirection = EyeRotation.Vector();
+		FVector TraceEnd = EyeLocation + (ShotDirection * LaserTraceLenght);
+
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(this);
+		QueryParams.bTraceComplex = true;
+
+		FVector TraceEndPoint = TraceEnd;
+
+		FHitResult HitResult;
+		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, EyeLocation, TraceEnd, COLLISION_WEAPON, QueryParams);
+
+		if (bHit)
+		{
+			TraceEndPoint = HitResult.ImpactPoint;
+
+			if (IsValid(AbilityEffect))
+			{
+				FVector LaserSocketLocation = GetMesh()->GetSocketLocation(AbilitySocketName);
+				FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(LaserSocketLocation, TraceEndPoint);
+
+				AMFG_LaserProjectile* CurrentProjectile = GetWorld()->SpawnActor<AMFG_LaserProjectile>(LaserProjectileClass, LaserSocketLocation, NewRotation);
+			}
+		}
+	}
+}
+
+void AMFG_Character::ReloadLaser()
+{
+	if (LaserShotsLeft < MaximumLaserShots)
+	{
+		LaserShotsLeft++;
+	}
+	else
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ReloadAbilityShots);
+	}
 }
 
 void AMFG_Character::MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -463,6 +539,10 @@ void AMFG_Character::OnBurningStateChange(UMFG_EffectsComponent* CurrentEffectsC
 	if (EffectsComponent->IsBurning())
 	{
 		BurningEffectComponent->SetVisibility(true);
+		/*if (IsValid(BurningEffect))
+		{
+			BurningEffectComponent = UGameplayStatics::SpawnEmitterAttached(BurningEffect, GetMesh(), EffectsSocketName);
+		}*/
 	}
 	else
 	{
@@ -470,6 +550,10 @@ void AMFG_Character::OnBurningStateChange(UMFG_EffectsComponent* CurrentEffectsC
 		{
 			BurningEffectComponent->SetVisibility(false);
 		}
+		/*if (IsValid(BurningEffectComponent))
+		{
+			BurningEffectComponent->DestroyComponent();
+		}*/
 	}
 }
 
@@ -523,6 +607,9 @@ void AMFG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AMFG_Character::StartMelee);
 	PlayerInputComponent->BindAction("Melee", IE_Released, this, &AMFG_Character::StopMelee);
 
+	PlayerInputComponent->BindAction("InitialAbility", IE_Pressed, this, &AMFG_Character::StartAbility);
+	PlayerInputComponent->BindAction("InitialAbility", IE_Released, this, &AMFG_Character::StopAbility);
+
 	PlayerInputComponent->BindAction("Ultimate", IE_Pressed, this, &AMFG_Character::StartUltimate);
 	PlayerInputComponent->BindAction("Ultimate", IE_Released, this, &AMFG_Character::StopUltimate);
 
@@ -547,6 +634,12 @@ void AMFG_Character::SetMeleeState(bool NewState)
 {
 	bIsDoingMelee = NewState;
 	bCanUseWeapon = !NewState;
+}
+
+void AMFG_Character::SetAbilityState(bool NewState)
+{
+	bIsUsingAbility = NewState;
+	bCanUseAbility = !NewState;
 }
 
 void AMFG_Character::SetComboEnable(bool NewState)
@@ -594,7 +687,7 @@ void AMFG_Character::UpdateUltimateDuration(float Value)
 
 		if (IsValid(UltimateWeaponEffectComponent))
 		{
-			UltimateWeaponEffectComponent->SetVisibility(false);
+			UltimateWeaponEffectComponent->DestroyComponent();
 		}
 
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_AutomaticShot);
