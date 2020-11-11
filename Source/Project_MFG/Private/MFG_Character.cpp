@@ -419,7 +419,7 @@ void AMFG_Character::StartAbility()
 
 		LaserShotsLeft--;
 
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ReloadAbilityShots, this, &AMFG_Character::ReloadLaser, LaserReloadTimeSpeed, true);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ReloadAbilityShots, this, &AMFG_Character::AbilityReload, LaserReloadTimeSpeed, true);
 
 		BP_StartAbility();
 	}
@@ -498,12 +498,16 @@ void AMFG_Character::SetAbilityBehavior()
 				FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(LaserSocketLocation, TraceEndPoint);
 
 				AMFG_LaserProjectile* CurrentProjectile = GetWorld()->SpawnActor<AMFG_LaserProjectile>(LaserProjectileClass, LaserSocketLocation, NewRotation);
+				if (bIsUsingUltimate)
+				{
+					CurrentProjectile->SetNewDamageValue(CurrentProjectile->GetLaserProjectileDamage() * UltimateWeaponDamageMultiplier);
+				}
 			}
 		}
 	}
 }
 
-void AMFG_Character::ReloadLaser()
+void AMFG_Character::AbilityReload()
 {
 	if (LaserShotsLeft < MaximumLaserShots)
 	{
@@ -513,13 +517,22 @@ void AMFG_Character::ReloadLaser()
 	{
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ReloadAbilityShots);
 	}
+
+	BP_AbilityReload();
 }
 
 void AMFG_Character::MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (IsValid(OtherActor))
 	{
-		UGameplayStatics::ApplyPointDamage(OtherActor, MeleeDamage * CurrentComboMultiplier, SweepResult.Location, SweepResult, GetInstigatorController(), this, nullptr);
+		if (bIsUsingUltimate)
+		{
+			UGameplayStatics::ApplyPointDamage(OtherActor, (MeleeDamage * CurrentComboMultiplier) * UltimateWeaponDamageMultiplier, SweepResult.Location, SweepResult, GetInstigatorController(), this, nullptr);
+		}
+		else 
+		{
+			UGameplayStatics::ApplyPointDamage(OtherActor, MeleeDamage * CurrentComboMultiplier, SweepResult.Location, SweepResult, GetInstigatorController(), this, nullptr);
+		}
 	}
 }
 

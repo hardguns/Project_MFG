@@ -91,6 +91,7 @@ void AMFG_ExplosiveBarrel::Explode()
 			{
 				//UGameplayStatics::ApplyRadialDamage(GetWorld(), Damage, GetActorLocation(), DamageRadius, DamageDealType, TArray<AActor*>(), this, GetInstigatorController(), true, ECC_Visibility);
 				UGameplayStatics::ApplyDamage(ActorToDamage, Damage, GetInstigatorController(), this, DamageDealType);
+				GetWorldTimerManager().ClearTimer(TimerHandle_HandleExplosion);
 			}
 		}
 

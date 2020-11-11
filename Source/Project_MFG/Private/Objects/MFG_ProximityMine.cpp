@@ -44,6 +44,7 @@ AMFG_ProximityMine::AMFG_ProximityMine()
 	HealthComponent = CreateDefaultSubobject<UMFG_HealthComponent>(TEXT("HealthComponent"));
 
 	Damage = 30.0f;
+	XPValue = 20.0f;
 
 	CurrentActor = NULL;
 
@@ -143,6 +144,18 @@ void AMFG_ProximityMine::OnHealthChange(UMFG_HealthComponent* CurrentHealthCompo
 {
 	if (HealthComponent->IsDead())
 	{
+		if (IsValid(DamageCauser))
+		{
+			AActor* WeaponOwner = DamageCauser->GetOwner();
+			if (IsValid(WeaponOwner))
+			{
+				AMFG_Character* Character = Cast<AMFG_Character>(WeaponOwner);
+				if (IsValid(Character))
+				{
+					Character->GainUltimateXP(XPValue);
+				}
+			}
+		}
 		Explode();
 	}
 }

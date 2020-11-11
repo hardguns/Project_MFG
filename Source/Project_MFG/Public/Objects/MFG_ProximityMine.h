@@ -53,6 +53,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Light")
 		float LightIntensity;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
+		float XPValue;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
 		TSubclassOf<UDamageType> DamageDealType;
 

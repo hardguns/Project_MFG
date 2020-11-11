@@ -64,3 +64,8 @@ void AMFG_LaserProjectile::Tick(float DeltaTime)
 
 }
 
+void AMFG_LaserProjectile::SetNewDamageValue(float NewDamage)
+{
+	Damage = NewDamage;
+}
+

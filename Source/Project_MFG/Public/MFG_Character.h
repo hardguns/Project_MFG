@@ -303,7 +303,7 @@ protected:
 
 	void StopUltimate();
 
-	void ReloadLaser();
+	void AbilityReload();
 
 	UFUNCTION()
 	void MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -374,6 +374,9 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 		void BP_StopAbility();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+		void BP_AbilityReload();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void BP_UpdateUltimateDuration(float Value);

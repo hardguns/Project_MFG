@@ -53,4 +53,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	float GetLaserProjectileDamage(){ return Damage; };
+
+	void SetNewDamageValue(float NewDamage);
+
 };
