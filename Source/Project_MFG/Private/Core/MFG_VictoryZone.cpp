@@ -38,7 +38,7 @@ void AMFG_VictoryZone::NotifyActorBeginOverlap(AActor* OtherActor)
 	if (IsValid(OtherActor) && IsValid(GameModeReference))
 	{
 		AMFG_Character* MFGCharacter = Cast<AMFG_Character>(OtherActor);
-		if (IsValid(MFGCharacter))
+		if (IsValid(MFGCharacter) && MFGCharacter->GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
 		{
 			GameModeReference->Victory(MFGCharacter);
 		}

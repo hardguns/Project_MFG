@@ -42,7 +42,7 @@ void AMFG_Item::NotifyActorBeginOverlap(AActor* OtherActor)
 	if (IsValid(OtherActor))
 	{
 		AMFG_Character* OverlappedCharacter = Cast<AMFG_Character>(OtherActor);
-		if (IsValid(OverlappedCharacter))
+		if (IsValid(OverlappedCharacter) && OverlappedCharacter->GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
 		{
 			Pickup(OverlappedCharacter);
 		}

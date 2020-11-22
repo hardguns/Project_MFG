@@ -19,6 +19,13 @@ class AMFG_GameMode;
 class UParticleSystem;
 class AMFG_LaserProjectile;
 
+UENUM()
+enum class EMFG_CharacterType : uint8
+{
+	CharacterType_Player		UMETA(DisplayName = "Player"),
+	CharacterType_Enemy			UMETA(DisplayName = "Enemy")
+};
+
 UCLASS()
 class PROJECT_MFG_API AMFG_Character : public ACharacter
 {
@@ -193,6 +200,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
 		TArray<FName> DoorKeys;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		EMFG_CharacterType CharacterType;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 		TSubclassOf<AMFG_Weapon> InitialWeaponClass;
 
@@ -271,6 +281,7 @@ protected:
 
 	void BagImpulse();
 
+	UFUNCTION(BlueprintCallable)
 	void Run();
 
 	void StopRunning();
@@ -357,6 +368,9 @@ public:
 	void UpdateUltimateDurationWithTimer();
 
 	void BeginUltimateBehavior();
+
+	UFUNCTION(BlueprintCallable)
+	EMFG_CharacterType GetCharacterType() { return CharacterType; };
 
 protected:
 

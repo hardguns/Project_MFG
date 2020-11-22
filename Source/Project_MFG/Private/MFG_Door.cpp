@@ -48,7 +48,7 @@ void AMFG_Door::CheckKeyFromPlayer(UPrimitiveComponent* OverlappedComponent, AAc
 	if (IsValid(OtherActor))
 	{
 		AMFG_Character* OverlappedCharacter = Cast<AMFG_Character>(OtherActor);
-		if (IsValid(OverlappedCharacter))
+		if (IsValid(OverlappedCharacter) && OverlappedCharacter->GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
 		{
 			if (OverlappedCharacter->HasKey(DoorTag))
 			{

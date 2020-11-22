@@ -538,7 +538,7 @@ void AMFG_Character::MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, A
 
 void AMFG_Character::OnHealthChange(UMFG_HealthComponent* CurrentHealthComponent, AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
-	if (HealthComponent->IsDead())
+	if (HealthComponent->IsDead() && GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
 	{
 		if (IsValid(GameModeReference))
 		{
