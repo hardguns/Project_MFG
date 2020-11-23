@@ -37,8 +37,8 @@ AMFG_ExplosiveBarrel::AMFG_ExplosiveBarrel()
 	TimeToExplode = 4.0f;
 
 	ActorsEnum.Add(EObjectTypeQuery::ObjectTypeQuery1);
-	ActorsEnum.Add(EObjectTypeQuery::ObjectTypeQuery2);
 	ActorsEnum.Add(EObjectTypeQuery::ObjectTypeQuery3);
+	ActorsEnum.Add(EObjectTypeQuery::ObjectTypeQuery7);
 
 }
 

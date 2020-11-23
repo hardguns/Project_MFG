@@ -49,8 +49,8 @@ AMFG_ProximityMine::AMFG_ProximityMine()
 	CurrentActor = NULL;
 
 	ActorsEnum.Add(EObjectTypeQuery::ObjectTypeQuery1);
-	ActorsEnum.Add(EObjectTypeQuery::ObjectTypeQuery2);
 	ActorsEnum.Add(EObjectTypeQuery::ObjectTypeQuery3);
+	ActorsEnum.Add(EObjectTypeQuery::ObjectTypeQuery7);
 
 }
 
