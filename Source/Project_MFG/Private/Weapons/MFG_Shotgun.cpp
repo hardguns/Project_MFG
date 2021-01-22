@@ -18,9 +18,17 @@ AMFG_Shotgun::AMFG_Shotgun()
 	Damage = 60;
 	TraceLenght = 850.0f;
 	MuzzleSocketName = "SCK_Muzzle";
+	WeaponRecoilRowName = "Shotgun";
 	PelletsNumber = 5;
 	ShotForce = 1500.0f;
 	CanShoot = true;
+}
+
+void AMFG_Shotgun::BeginPlay()
+{
+	Super::BeginPlay();
+
+	GetRecoilInfo(WeaponRecoilRowName);
 }
 
 void AMFG_Shotgun::StartAction()
@@ -47,7 +55,19 @@ void AMFG_Shotgun::ActionShot()
 		FVector EyeLocation;
 		FRotator EyeRotation;
 
+		AMFG_Character* CurrentCharacter = Cast<AMFG_Character>(CurrentOwner);
+
+		if (IsValid(CurrentCharacter))
+		{
+			WeaponPitchRecoil = CurrentCharacter->GetCharacterType() == EMFG_CharacterType::CharacterType_Enemy ? FMath::RandRange(EnemyBehaviorRow->MinPitchRecoil, EnemyBehaviorRow->MaxPitchRecoil) : FMath::RandRange(CharacterBehaviorRow->MinPitchRecoil, CharacterBehaviorRow->MaxPitchRecoil);
+			WeaponYawRecoil = CurrentCharacter->GetCharacterType() == EMFG_CharacterType::CharacterType_Enemy ? FMath::RandRange(EnemyBehaviorRow->MinYawRecoil, EnemyBehaviorRow->MaxYawRecoil) : FMath::RandRange(CharacterBehaviorRow->MinYawRecoil, CharacterBehaviorRow->MaxYawRecoil);
+		}
+
+		CameraPitchRecoilShake = FMath::RandRange(CharacterBehaviorRow->MinCameraPitchShake, CharacterBehaviorRow->MaxCameraPitchShake);
+
 		CurrentOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
+		EyeRotation.Pitch = EyeRotation.Pitch + WeaponPitchRecoil;
+		EyeRotation.Yaw = EyeRotation.Yaw + WeaponYawRecoil;
 
 		FVector ShotDirection = EyeRotation.Vector();
 		FVector TraceEnd = EyeLocation + (ShotDirection * TraceLenght);
@@ -92,6 +112,11 @@ void AMFG_Shotgun::ActionShot()
 					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactEffect, TraceEndPoint, HitResult.ImpactNormal.Rotation());
 				}
 			}
+		}
+
+		if (IsValid(CurrentCharacter))
+		{
+			CurrentCharacter->AddControllerPitchInput(CameraPitchRecoilShake);
 		}
 
 		/*AMFG_Character* MainCharacter = Cast<AMFG_Character>(CurrentOwner);

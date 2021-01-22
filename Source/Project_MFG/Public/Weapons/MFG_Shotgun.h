@@ -37,6 +37,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 		FName TraceParamName;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Recoil")
+		FName WeaponRecoilRowName;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 		UParticleSystem* MuzzleEffect;
 
@@ -53,6 +56,8 @@ protected:
 		bool CanShoot;
 
 protected:
+
+	virtual void BeginPlay() override;
 
 	virtual void StartAction() override;
 

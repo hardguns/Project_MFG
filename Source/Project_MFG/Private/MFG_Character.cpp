@@ -205,6 +205,11 @@ void AMFG_Character::Run()
 		bIsCrouching = false;
 	}
 
+	if (bIsShooting) 
+	{
+		StopWeaponAction();
+	}
+
 	SetCharacterSpeed();
 }
 
@@ -356,7 +361,7 @@ void AMFG_Character::SetWeaponBehavior()
 
 void AMFG_Character::StartMelee()
 {
-	if (bIsRunning)
+	if (bIsRunning && GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
 	{
 		StopRunning();
 	}
@@ -523,15 +528,43 @@ void AMFG_Character::AbilityReload()
 
 void AMFG_Character::MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+
 	if (IsValid(OtherActor))
 	{
-		if (bIsUsingUltimate)
+		if (OtherActor == this)
 		{
-			UGameplayStatics::ApplyPointDamage(OtherActor, (MeleeDamage * CurrentComboMultiplier) * UltimateWeaponDamageMultiplier, SweepResult.Location, SweepResult, GetInstigatorController(), this, nullptr);
+			return;
+		}
+
+		AMFG_Character* MeleeTarget = Cast<AMFG_Character>(OtherActor);
+
+		if (IsValid(MeleeTarget))
+		{
+			bool bPlayerAttackingEnemy = GetCharacterType() == EMFG_CharacterType::CharacterType_Player && MeleeTarget->GetCharacterType() == EMFG_CharacterType::CharacterType_Enemy;
+			bool bEnemyAttackingPlayer = GetCharacterType() == EMFG_CharacterType::CharacterType_Enemy && MeleeTarget->GetCharacterType() == EMFG_CharacterType::CharacterType_Player;
+
+			if (bPlayerAttackingEnemy || bEnemyAttackingPlayer)
+			{
+				if (bIsUsingUltimate)
+				{
+					UGameplayStatics::ApplyPointDamage(OtherActor, (MeleeDamage * CurrentComboMultiplier) * UltimateWeaponDamageMultiplier, SweepResult.Location, SweepResult, GetInstigatorController(), this, nullptr);
+				}
+				else
+				{
+					UGameplayStatics::ApplyPointDamage(OtherActor, MeleeDamage * CurrentComboMultiplier, SweepResult.Location, SweepResult, GetInstigatorController(), this, nullptr);
+				}
+			}
 		}
 		else 
 		{
-			UGameplayStatics::ApplyPointDamage(OtherActor, MeleeDamage * CurrentComboMultiplier, SweepResult.Location, SweepResult, GetInstigatorController(), this, nullptr);
+			if (bIsUsingUltimate)
+			{
+				UGameplayStatics::ApplyPointDamage(OtherActor, (MeleeDamage * CurrentComboMultiplier) * UltimateWeaponDamageMultiplier, SweepResult.Location, SweepResult, GetInstigatorController(), this, nullptr);
+			}
+			else
+			{
+				UGameplayStatics::ApplyPointDamage(OtherActor, MeleeDamage * CurrentComboMultiplier, SweepResult.Location, SweepResult, GetInstigatorController(), this, nullptr);
+			}
 		}
 	}
 }

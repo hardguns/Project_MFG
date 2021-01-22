@@ -11,15 +11,25 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/EngineTypes.h"
+#include "MFG_Character.h"
+#include "Engine/DataTable.h"
 
 AMFG_Rifle::AMFG_Rifle()
 {
 	TraceLenght = 10000.0f;
 	bIsAutomatic = false;
 	MuzzleSocketName = "SCK_Muzzle";
+	WeaponRecoilRowName = "Rifle";
 	TimeBetweenShots = 0.15f;
 }
-	
+
+
+void AMFG_Rifle::BeginPlay()
+{
+	Super::BeginPlay();
+
+	GetRecoilInfo(WeaponRecoilRowName);
+}
 
 void AMFG_Rifle::StartAction()
 {
@@ -41,7 +51,7 @@ void AMFG_Rifle::StopAction()
 	{
 		GetWorldTimerManager().ClearTimer(TimerHandle_HandleAutomaticShot);
 	}
-	
+
 }
 
 void AMFG_Rifle::ActionShot()
@@ -53,9 +63,22 @@ void AMFG_Rifle::ActionShot()
 		FVector EyeLocation;
 		FRotator EyeRotation;
 
+		AMFG_Character* CurrentCharacter = Cast<AMFG_Character>(CurrentOwner);
+		
+		if (IsValid(CurrentCharacter))
+		{
+			WeaponPitchRecoil = CurrentCharacter->GetCharacterType() == EMFG_CharacterType::CharacterType_Enemy ? FMath::RandRange(EnemyBehaviorRow->MinPitchRecoil, EnemyBehaviorRow->MaxPitchRecoil) : FMath::RandRange(CharacterBehaviorRow->MinPitchRecoil, CharacterBehaviorRow->MaxPitchRecoil);
+			WeaponYawRecoil = CurrentCharacter->GetCharacterType() == EMFG_CharacterType::CharacterType_Enemy ? FMath::RandRange(EnemyBehaviorRow->MinYawRecoil, EnemyBehaviorRow->MaxYawRecoil) : FMath::RandRange(CharacterBehaviorRow->MinYawRecoil, CharacterBehaviorRow->MaxYawRecoil);
+		}
+
+		CameraPitchRecoilShake = FMath::RandRange(CharacterBehaviorRow->MinCameraPitchShake, CharacterBehaviorRow->MaxCameraPitchShake);
+
 		CurrentOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
+		EyeRotation.Pitch = EyeRotation.Pitch + WeaponPitchRecoil;
+		EyeRotation.Yaw = EyeRotation.Yaw + WeaponYawRecoil;
 
 		FVector ShotDirection = EyeRotation.Vector();
+
 		FVector TraceEnd = EyeLocation + (ShotDirection * TraceLenght);
 
 		FCollisionQueryParams QueryParams;
@@ -67,6 +90,11 @@ void AMFG_Rifle::ActionShot()
 
 		FHitResult HitResult;
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, EyeLocation, TraceEnd, COLLISION_WEAPON, QueryParams);
+
+		if (IsValid(CurrentCharacter))
+		{
+			CurrentCharacter->AddControllerPitchInput(CameraPitchRecoilShake);
+		}
 
 		if (bHit)
 		{

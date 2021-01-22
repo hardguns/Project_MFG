@@ -3,6 +3,7 @@
 
 #include "Weapons/MFG_Weapon.h"
 #include "GameFramework/Character.h"
+#include "Engine/DataTable.h"
 
 // Sets default values
 AMFG_Weapon::AMFG_Weapon()
@@ -11,13 +12,28 @@ AMFG_Weapon::AMFG_Weapon()
 	PrimaryActorTick.bCanEverTick = true;
 
 	Damage = 20.0f;
+	WeaponPitchRecoil = 0;
+	WeaponYawRecoil = 0;
+	CameraPitchRecoilShake = 0;
+	CameraYawRecoilShake = 0;
+}
+
+FRecoilBehaviourStruct::FRecoilBehaviourStruct()
+{
+	MinPitchRecoil = 0;
+	MaxPitchRecoil = 0;
+	MinYawRecoil = 0;
+	MaxYawRecoil = 0;
+	MinCameraPitchShake = 0;
+	MaxCameraPitchShake = 0;
+	MinCameraYawShake = 0;
+	MaxCameraYawShake = 0;
 }
 
 // Called when the game starts or when spawned
 void AMFG_Weapon::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -49,5 +65,23 @@ void AMFG_Weapon::SetCharacterOwner(ACharacter* NewOwner)
 void AMFG_Weapon::SetCurrentDamage(float NewDamage)
 {
 	Damage = NewDamage;
+}
+
+void AMFG_Weapon::GetRecoilInfo(FName RowName)
+{
+	EnemyBehaviorRow = new FRecoilBehaviourStruct();
+	CharacterBehaviorRow = new FRecoilBehaviourStruct();
+
+	if (IsValid(EnemyRecoilBehaviourDT))
+	{
+		EnemyRecoilBehaviourDT->RowStruct = FRecoilBehaviourStruct::StaticStruct();
+		EnemyBehaviorRow = EnemyRecoilBehaviourDT->FindRow<FRecoilBehaviourStruct>(RowName, "");
+	}
+
+	if (IsValid(CharacterRecoilBehaviourDT))
+	{
+		CharacterRecoilBehaviourDT->RowStruct = FRecoilBehaviourStruct::StaticStruct();
+		CharacterBehaviorRow = CharacterRecoilBehaviourDT->FindRow<FRecoilBehaviourStruct>(RowName, "");
+	}
 }
 

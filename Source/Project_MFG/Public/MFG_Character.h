@@ -296,12 +296,15 @@ protected:
 
 	void CreateInitialWeapon();
 
+	UFUNCTION(BlueprintCallable)
 	void StartWeaponAction();
 
+	UFUNCTION(BlueprintCallable)
 	void StopWeaponAction();
 
 	void SetWeaponBehavior();
 
+	UFUNCTION(BlueprintCallable)
 	void StartMelee();
 
 	void StopMelee();

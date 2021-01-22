@@ -7,6 +7,8 @@
 #include "MFG_Rifle.generated.h"
 
 class UParticleSystem;
+class UDataTable;
+
 
 /**
  * 
@@ -44,6 +46,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 		FName TraceParamName;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Recoil")
+		FName WeaponRecoilRowName;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 		UParticleSystem* MuzzleEffect;
 
@@ -55,10 +60,14 @@ protected:
 
 protected:
 
+	virtual void BeginPlay() override;
+
 	virtual void StartAction() override;
 
 	virtual void StopAction() override;
 
 	void ActionShot();
-	
+
 };
+
+
