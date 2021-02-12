@@ -62,8 +62,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Bot Heal")
 		float HealAmount;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Bot Heal")
-		float HealRadius;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Bot")
+		float ActionRadius;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Bot Heal")
 		float HealCounter;

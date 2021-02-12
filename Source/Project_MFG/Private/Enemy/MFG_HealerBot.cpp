@@ -35,7 +35,6 @@ AMFG_HealerBot::AMFG_HealerBot()
 	HealDetectorComponent->SetupAttachment(RootComponent);
 	HealDetectorComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	HealDetectorComponent->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Overlap);
-	HealDetectorComponent->SetSphereRadius(150.0f);
 
 	DecalEffect = CreateDefaultSubobject<UDecalComponent>(TEXT("DecalComponent"));
 	DecalEffect->SetupAttachment(HealDetectorComponent);
@@ -45,10 +44,11 @@ AMFG_HealerBot::AMFG_HealerBot()
 	ForceMagnitude = 500.0f;
 	SecondsToHeal = 0.5f;
 	HealAmount = 5.0f;
-	HealRadius = 400.0f;
+	ActionRadius = 400.0f;
 	HealCounter = 0;
 	ShieldSocketName = "SCK_Shield";
 
+	HealDetectorComponent->SetSphereRadius(ActionRadius);
 	ActorsEnum.Add(EObjectTypeQuery::ObjectTypeQuery1);
 	ActorsEnum.Add(EObjectTypeQuery::ObjectTypeQuery3);
 	ActorsEnum.Add(EObjectTypeQuery::ObjectTypeQuery7);
@@ -67,8 +67,8 @@ void AMFG_HealerBot::BeginPlay()
 
 	if (IsValid(DecalEffect))
 	{
-		DecalEffect->DecalSize.Y = HealRadius;
-		DecalEffect->DecalSize.Z = HealRadius;
+		DecalEffect->DecalSize.Y = ActionRadius;
+		DecalEffect->DecalSize.Z = ActionRadius;
 		DecalMaterial = UMaterialInstanceDynamic::Create(DecalEffect->GetMaterial(0), nullptr);
 		if (IsValid(DecalMaterial))
 		{
@@ -216,7 +216,7 @@ void AMFG_HealerBot::UnsetBotBehaviour()
 
 void AMFG_HealerBot::HealAllies()
 {
-	UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), HealRadius, ActorsEnum, nullptr, TArray<AActor*>(), ActorsToHeal);
+	UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), ActionRadius, ActorsEnum, nullptr, TArray<AActor*>(), ActorsToHeal);
 
 	for (AActor* AllyToHeal : ActorsToHeal)
 	{
@@ -227,7 +227,7 @@ void AMFG_HealerBot::HealAllies()
 
 			if (bDebug)
 			{
-				DrawDebugSphere(GetWorld(), GetActorLocation(), HealRadius, 15, FColor::Green, false, 5.0f, 0, 1.0f);
+				DrawDebugSphere(GetWorld(), GetActorLocation(), ActionRadius, 15, FColor::Green, false, 5.0f, 0, 1.0f);
 				UE_LOG(LogTemp, Log, TEXT("Current enemy health: %s"), *FString::SanitizeFloat(EnemyToHeal->HealthComponent->GetCurrentHealth()));
 			}
 		}
@@ -310,25 +310,13 @@ void AMFG_HealerBot::AttackPlayer()
 		{
 			HealingAttachedEffectComponent->DestroyComponent();
 		}
-		/*FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(BotMeshComponent->GetComponentLocation(), PlayerReference->GetMesh()->GetComponentLocation());
-		SetActorRotation(NewRotation);
-
-		float DistanceToPlayer = GetDistanceTo(PlayerReference) / 5000;
-		FVector VectorDistance = PlayerReference->GetVelocity() * DistanceToPlayer;
-		FRotator RotationToPlayer = UKismetMathLibrary::FindLookAtRotation(BotMeshComponent->GetComponentLocation(), VectorDistance);*/
-
-		//USkeletalMeshComponent* BotMeshComponent = BotMeshComponent;
+		
 		if (IsValid(BotMeshComponent))
 		{
-			//FVector MuzzleSocketLocation = BotMeshComponent->GetSocketLocation(MuzzleSocketName);
-
-			//DrawDebugLine(GetWorld(), EyeLocation, TraceEndPoint, FColor::White, false, 1.0f, 0.0f, 1.0f);
 			FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), PlayerReference->GetActorLocation());
 			SetActorRotation(NewRotation);
 			FVector ShotLocation = (UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 70) + GetActorLocation();
 			AMFG_Projectile* CurrentProjectile = GetWorld()->SpawnActor<AMFG_Projectile>(ProjectileClass, ShotLocation, NewRotation);
-			//CurrentProjectile->SetNewDamageValue(Damage);
-
 		}
 	}
 }
