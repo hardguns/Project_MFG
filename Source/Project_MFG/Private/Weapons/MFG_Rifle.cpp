@@ -13,6 +13,7 @@
 #include "Engine/EngineTypes.h"
 #include "MFG_Character.h"
 #include "Engine/DataTable.h"
+#include "Objects/MFG_Shield.h"
 
 AMFG_Rifle::AMFG_Rifle()
 {
@@ -64,7 +65,7 @@ void AMFG_Rifle::ActionShot()
 		FRotator EyeRotation;
 
 		AMFG_Character* CurrentCharacter = Cast<AMFG_Character>(CurrentOwner);
-		
+
 		if (IsValid(CurrentCharacter))
 		{
 			WeaponPitchRecoil = CurrentCharacter->GetCharacterType() == EMFG_CharacterType::CharacterType_Enemy ? FMath::RandRange(EnemyBehaviorRow->MinPitchRecoil, EnemyBehaviorRow->MaxPitchRecoil) : FMath::RandRange(CharacterBehaviorRow->MinPitchRecoil, CharacterBehaviorRow->MaxPitchRecoil);
@@ -84,6 +85,13 @@ void AMFG_Rifle::ActionShot()
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(this);
 		QueryParams.AddIgnoredActor(CurrentOwner);
+		if (IsValid(CurrentCharacter))
+		{
+			if (IsValid(CurrentCharacter->GetShieldActor()))
+			{
+				QueryParams.AddIgnoredActor(CurrentCharacter->GetShieldActor());
+			}
+		}
 		QueryParams.bTraceComplex = true;
 
 		FVector TraceEndPoint = TraceEnd;

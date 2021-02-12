@@ -12,6 +12,7 @@
 #include "DrawDebugHelpers.h"
 #include "MFG_Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Objects/MFG_Shield.h"
 
 AMFG_Shotgun::AMFG_Shotgun()
 {
@@ -77,6 +78,13 @@ void AMFG_Shotgun::ActionShot()
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(this);
 		QueryParams.AddIgnoredActor(CurrentOwner);
+		if (IsValid(CurrentCharacter))
+		{
+			if (IsValid(CurrentCharacter->GetShieldActor()))
+			{
+				QueryParams.AddIgnoredActor(CurrentCharacter->GetShieldActor());
+			}
+		}
 		QueryParams.bTraceComplex = true;
 		int SuccessfulHits = 0;
 

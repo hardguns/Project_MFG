@@ -24,6 +24,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/ActorComponent.h"
 #include "Weapons/MFG_LaserProjectile.h"
+#include "Objects/MFG_Shield.h"
 
 // Sets default values
 AMFG_Character::AMFG_Character()
@@ -439,6 +440,11 @@ void AMFG_Character::StartUltimate()
 {
 	if (bCanUseUltimate && !bIsUsingUltimate)
 	{
+		if (bIsRunning && GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
+		{
+			StopRunning();
+		}
+
 		CurrentUltimateDuration = MaxUltimateDuration;
 
 		bCanUseUltimate = false;
@@ -763,4 +769,9 @@ void AMFG_Character::BeginUltimateBehavior()
 	{
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle_Ultimate, this, &AMFG_Character::UpdateUltimateDurationWithTimer, UltimateFrequency, true);
 	}
+}
+
+void AMFG_Character::SetShield(AMFG_Shield* NewShield)
+{
+	CurrentShield = NewShield;
 }

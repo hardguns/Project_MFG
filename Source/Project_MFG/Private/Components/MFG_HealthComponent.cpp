@@ -14,6 +14,11 @@ UMFG_HealthComponent::UMFG_HealthComponent()
 }
 
 
+void UMFG_HealthComponent::SetNewHealth(float HealthAmount)
+{
+	Health = FMath::Clamp(Health + HealthAmount, 0.0f, MaxHealth);
+}
+
 // Called when the game starts
 void UMFG_HealthComponent::BeginPlay()
 {
@@ -26,7 +31,6 @@ void UMFG_HealthComponent::BeginPlay()
 	{
 		MyOwner->OnTakeAnyDamage.AddDynamic(this, &UMFG_HealthComponent::TakingDamage);
 	}
-	
 }
 
 void UMFG_HealthComponent::TakingDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)

@@ -16,10 +16,12 @@ class PROJECT_MFG_API AMFG_Projectile : public AActor
 {
 	GENERATED_BODY()
 
-protected:
+public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		USphereComponent* ProjectileCollision;
+
+protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		UStaticMeshComponent* ProjectileMesh; 

@@ -77,7 +77,7 @@ void AMFG_ProximityMine::Explode()
 {
 	UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), DamageRadius, ActorsEnum, nullptr, TArray<AActor*>(), ActorsToDamage);
 
-	for (AActor* ActorToDamage: ActorsToDamage)
+	for (AActor* ActorToDamage : ActorsToDamage)
 	{
 		if (IsValid(ActorToDamage))
 		{
@@ -107,7 +107,10 @@ void AMFG_ProximityMine::ValidateDistance()
 			Explode();
 		}
 
-		UE_LOG(LogTemp, Log, TEXT("Distance from actor: %s"), *FString::SanitizeFloat(CharacterDistance));
+		if (bDebug)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Distance from actor: %s"), *FString::SanitizeFloat(CharacterDistance));
+		}
 	}
 }
 

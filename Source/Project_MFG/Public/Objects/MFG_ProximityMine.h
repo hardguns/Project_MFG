@@ -38,6 +38,9 @@ protected:
 
 protected:
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
+		bool bDebug;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Damage")
 		float CharacterDistance;
 

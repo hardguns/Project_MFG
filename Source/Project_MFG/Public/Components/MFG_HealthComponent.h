@@ -42,6 +42,11 @@ public:
 	UFUNCTION()
 	float GetCurrentHealth() { return Health; };
 
+	UFUNCTION()
+	float GetMaxHealth() { return MaxHealth; };
+
+	void SetNewHealth(float HealthAmount);
+
 public:
 
 	UPROPERTY(BlueprintAssignable)

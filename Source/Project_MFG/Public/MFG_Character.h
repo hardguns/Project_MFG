@@ -18,6 +18,7 @@ class UMFG_EffectsComponent;
 class AMFG_GameMode;
 class UParticleSystem;
 class AMFG_LaserProjectile;
+class AMFG_Shield;
 
 UENUM()
 enum class EMFG_CharacterType : uint8
@@ -46,10 +47,12 @@ protected:
 		UCapsuleComponent* MeleeDetectorComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		UMFG_HealthComponent* HealthComponent;
+		UMFG_EffectsComponent* EffectsComponent;
+
+public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		UMFG_EffectsComponent* EffectsComponent;
+		UMFG_HealthComponent* HealthComponent;
 	
 protected:
 
@@ -208,6 +211,9 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, Category = "Weapon")
 		AMFG_Weapon* CurrentWeapon;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Shield")
+		AMFG_Shield* CurrentShield;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation")
 		UAnimMontage* MeleeMontage;
@@ -374,6 +380,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	EMFG_CharacterType GetCharacterType() { return CharacterType; };
+
+	void SetShield(AMFG_Shield* NewShield);
+
+	AMFG_Shield* GetShieldActor() { return CurrentShield; };
 
 protected:
 
