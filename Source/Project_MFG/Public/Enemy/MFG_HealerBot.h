@@ -16,6 +16,7 @@ class UParticleSystemComponent;
 class UDecalComponent;
 class AMFG_Shield;
 class AMFG_Projectile;
+class AMFG_Item;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_HealerBot : public APawn
@@ -68,6 +69,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Bot Heal")
 		float HealCounter;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bot Ultimate XP")
+		float XPValue;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loot System")
+		float LootProbability;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Bot")
 		FVector NextPathPoint;
 
@@ -103,6 +110,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Bot Attack")
 		TSubclassOf<AMFG_Projectile> ProjectileClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Loot System")
+		TSubclassOf<AMFG_Item> LootItemClass;
 
 	UParticleSystemComponent* HealingAttachedEffectComponent;
 
@@ -142,6 +152,14 @@ protected:
 	void GiveShieldToAllies();
 
 	void AttackPlayer();
+
+	UFUNCTION()
+	void GiveXP(AActor* DamageCauser);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_GiveXP(AActor* DamageCauser);
+
+	bool TrySpawnLoot();
 
 public:	
 	// Called every frame

@@ -2,23 +2,25 @@
 
 
 #include "Enemy/MFG_HealerBot.h"
+#include "Enemy/MFG_Enemy.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/MFG_HealthComponent.h"
+#include "Components/SphereComponent.h"
+#include "Components/DecalComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/PrimitiveComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "DrawDebugHelpers.h"
 #include "NavigationSystem/Public/NavigationSystem.h"
 #include "NavigationSystem/Public/NavigationPath.h"
-#include "Enemy/MFG_Enemy.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
-#include "Components/SphereComponent.h"
-#include "Components/DecalComponent.h"
 #include "Objects/MFG_Shield.h"
-#include "Components/CapsuleComponent.h"
 #include "Project_MFG/Project_MFG.h"
 #include "Weapons/MFG_Projectile.h"
-#include "Components/PrimitiveComponent.h"
+#include "Weapons/MFG_Weapon.h"
+#include "Items/MFG_Item.h"
 
 // Sets default values
 AMFG_HealerBot::AMFG_HealerBot()
@@ -46,7 +48,10 @@ AMFG_HealerBot::AMFG_HealerBot()
 	HealAmount = 5.0f;
 	ActionRadius = 400.0f;
 	HealCounter = 0;
+	XPValue = 10.0f;
 	ShieldSocketName = "SCK_Shield";
+
+	LootProbability = 100.0f;
 
 	HealDetectorComponent->SetSphereRadius(ActionRadius);
 	ActorsEnum.Add(EObjectTypeQuery::ObjectTypeQuery1);
@@ -79,6 +84,8 @@ void AMFG_HealerBot::BeginPlay()
 	BotMaterial = BotMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, BotMeshComponent->GetMaterial(0));
 
 	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &AMFG_HealerBot::TakingDamage);
+	HealthComponent->OnDeadDelegate.AddDynamic(this, &AMFG_HealerBot::GiveXP);
+
 	HealDetectorComponent->OnComponentBeginOverlap.AddDynamic(this, &AMFG_HealerBot::StartAllyOverlap);
 	HealDetectorComponent->OnComponentEndOverlap.AddDynamic(this, &AMFG_HealerBot::EndAllyOverlap);
 
@@ -203,15 +210,20 @@ void AMFG_HealerBot::SetBotBehaviour()
 
 void AMFG_HealerBot::UnsetBotBehaviour()
 {
-	if (IsValid(HealingAttachedEffectComponent))
-	{
-		HealingAttachedEffectComponent->DestroyComponent();
-	}
-
 	if (IsValid(DecalEffect))
 	{
 		DecalEffect->SetHiddenInGame(true);
 	}
+
+	if (!IsValid(HealingAttachedEffectComponent))
+	{
+		return;
+	}
+	else
+	{
+		HealingAttachedEffectComponent->DeactivateSystem();
+	}
+	
 }
 
 void AMFG_HealerBot::HealAllies()
@@ -223,7 +235,7 @@ void AMFG_HealerBot::HealAllies()
 		AMFG_Enemy* EnemyToHeal = Cast<AMFG_Enemy>(AllyToHeal);
 		if (IsValid(EnemyToHeal))
 		{
-			EnemyToHeal->HealthComponent->SetNewHealth(HealAmount);
+			EnemyToHeal->TryAddHealth(HealAmount);
 
 			if (bDebug)
 			{
@@ -262,7 +274,7 @@ void AMFG_HealerBot::HealAllies()
 
 		if (IsValid(HealingAttachedEffectComponent))
 		{
-			HealingAttachedEffectComponent->DestroyComponent();
+			HealingAttachedEffectComponent->DeactivateSystem();
 		}
 	}
 }
@@ -308,7 +320,7 @@ void AMFG_HealerBot::AttackPlayer()
 	{
 		if (IsValid(HealingAttachedEffectComponent))
 		{
-			HealingAttachedEffectComponent->DestroyComponent();
+			HealingAttachedEffectComponent->DeactivateSystem();
 		}
 		
 		if (IsValid(BotMeshComponent))
@@ -319,6 +331,51 @@ void AMFG_HealerBot::AttackPlayer()
 			AMFG_Projectile* CurrentProjectile = GetWorld()->SpawnActor<AMFG_Projectile>(ProjectileClass, ShotLocation, NewRotation);
 		}
 	}
+}
+
+void AMFG_HealerBot::GiveXP(AActor* DamageCauser)
+{
+	AMFG_Character* PossiblePlayer = Cast<AMFG_Character>(DamageCauser);
+
+	if (IsValid(PossiblePlayer) && PossiblePlayer->GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
+	{
+		PossiblePlayer->GainUltimateXP(XPValue);
+		TrySpawnLoot();
+	}
+
+	AMFG_Weapon* PossibleWeapon = Cast<AMFG_Weapon>(DamageCauser);
+
+	if (IsValid(PossibleWeapon))
+	{
+		AMFG_Character* WeaponOwner = Cast<AMFG_Character>(PossibleWeapon->GetOwner());
+
+		if (IsValid(WeaponOwner) && WeaponOwner->GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
+		{
+			WeaponOwner->GainUltimateXP(XPValue);
+			TrySpawnLoot();
+		}
+	}
+
+	BP_GiveXP(DamageCauser);
+}
+
+bool AMFG_HealerBot::TrySpawnLoot()
+{
+	if (!IsValid(LootItemClass))
+	{
+		return false;
+	}
+
+	float SelectedProbability = FMath::RandRange(0.0f, 100.0f);
+	if (SelectedProbability <= LootProbability)
+	{
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		GetWorld()->SpawnActor<AMFG_Item>(LootItemClass, GetActorLocation(), FRotator::ZeroRotator, SpawnParameters);
+	}
+
+	return true;
 }
 
 // Called every frame

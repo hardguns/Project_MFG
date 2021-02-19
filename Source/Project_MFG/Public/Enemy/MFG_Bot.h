@@ -11,6 +11,8 @@ class AMFG_Character;
 class UMFG_HealthComponent;
 class UParticleSystem;
 class USphereComponent;
+class AMFG_Item;
+class AMFG_BotSpawner;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_Bot : public APawn
@@ -50,12 +52,24 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Bot Effect")
 		float ExplosionRadius;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bot Ultimate XP")
+		float XPValue;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loot System")
+		float LootProbability;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Bot")
 		FVector NextPathPoint;
 
 	UPROPERTY(BlueprintReadOnly, Category = "References")
 		AMFG_Character* PlayerCharacter;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Loot System")
+		TSubclassOf<AMFG_Item> LootItemClass;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Spawner")
+		AMFG_BotSpawner* MySpawner;
 
 	UMaterialInstanceDynamic* BotMaterial;
 
@@ -85,8 +99,18 @@ protected:
 
 	void SelfDamage();
 
+	UFUNCTION()
+	void GiveXP(AActor* DamageCauser);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_GiveXP(AActor* DamageCauser);
+
+	bool TrySpawnLoot();
+
 public:	
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	void SetSpawner(AMFG_BotSpawner* NewSpawner) { MySpawner = NewSpawner; };
 };

@@ -20,6 +20,6 @@ void AMFG_DoorKey::Pickup(AMFG_Character* PickupCharacter)
 	Super::Pickup(PickupCharacter);
 
 	PickupCharacter->AddKey(KeyTag);
-	PickupCharacter->GainUltimateXP(XPValue);
+	//PickupCharacter->GainUltimateXP(XPValue);
 	Destroy();
 }

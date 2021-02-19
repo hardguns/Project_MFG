@@ -12,6 +12,9 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Components/SphereComponent.h"
 #include "Particles/ParticleSystem.h"
+#include "Weapons/MFG_Weapon.h"
+#include "Items/MFG_Item.h"
+#include "Enemy/MFG_BotSpawner.h"
 
 // Sets default values
 AMFG_Bot::AMFG_Bot()
@@ -36,6 +39,9 @@ AMFG_Bot::AMFG_Bot()
 	ForceMagnitude = 500.0f;
 	ExplosionDamage = 100.0f;
 	ExplosionRadius = 50.0f;
+	XPValue = 10.0f;
+
+	LootProbability = 100.0f;
 }
 
 // Called when the game starts or when spawned
@@ -50,6 +56,8 @@ void AMFG_Bot::BeginPlay()
 	}
 
 	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &AMFG_Bot::TakingDamage);
+	HealthComponent->OnDeadDelegate.AddDynamic(this, &AMFG_Bot::GiveXP);
+
 	SelfDestructionDetectorComponent->OnComponentBeginOverlap.AddDynamic(this, &AMFG_Bot::StartCountDown);
 
 	BotMaterial = BotMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, BotMeshComponent->GetMaterial(0));
@@ -83,6 +91,19 @@ void AMFG_Bot::TakingDamage(UMFG_HealthComponent* CurrentHealthComponent, AActor
 
 	if (CurrentHealthComponent->IsDead())
 	{
+		if (IsValid(DamageCauser))
+		{
+			AMFG_Weapon* Weapon = Cast<AMFG_Weapon>(DamageCauser);
+			if (IsValid(Weapon))
+			{
+				AMFG_Character* RifleOwner = Cast<AMFG_Character>(Weapon->GetOwner());
+				if (IsValid(RifleOwner) && RifleOwner->GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
+				{
+					TrySpawnLoot();
+				}
+			}
+		}
+
 		SelfDestruction();
 	}
 }
@@ -111,6 +132,11 @@ void AMFG_Bot::SelfDestruction()
 		DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadius, 20, FColor::Red, true, 5.0f, 0, 2.0f);
 	}
 
+	if (IsValid(MySpawner))
+	{
+		MySpawner->NotifyBotDead();
+	}
+
 	Destroy();
 }
 
@@ -132,6 +158,49 @@ void AMFG_Bot::StartCountDown(UPrimitiveComponent* OverlappedComponent, AActor* 
 void AMFG_Bot::SelfDamage()
 {
 	UGameplayStatics::ApplyDamage(this, 20.0f, GetInstigatorController(), nullptr, nullptr);
+}
+
+void AMFG_Bot::GiveXP(AActor* DamageCauser)
+{
+	AMFG_Character* PossiblePlayer = Cast<AMFG_Character>(DamageCauser);
+
+	if (IsValid(PossiblePlayer) && PossiblePlayer->GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
+	{
+		PossiblePlayer->GainUltimateXP(XPValue);
+	}
+
+	AMFG_Weapon* PossibleWeapon = Cast<AMFG_Weapon>(DamageCauser);
+
+	if (IsValid(PossibleWeapon))
+	{
+		AMFG_Character* WeaponOwner = Cast<AMFG_Character>(PossibleWeapon->GetOwner());
+
+		if (IsValid(WeaponOwner) && WeaponOwner->GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
+		{
+			WeaponOwner->GainUltimateXP(XPValue);
+		}
+	}
+
+	BP_GiveXP(DamageCauser);
+}
+
+bool AMFG_Bot::TrySpawnLoot()
+{
+	if (!IsValid(LootItemClass))
+	{
+		return false;
+	}
+
+	float SelectedProbability = FMath::RandRange(0.0f, 100.0f);
+	if (SelectedProbability <= LootProbability)
+	{
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		GetWorld()->SpawnActor<AMFG_Item>(LootItemClass, GetActorLocation(), FRotator::ZeroRotator, SpawnParameters);
+	}
+
+	return true;
 }
 
 // Called every frame

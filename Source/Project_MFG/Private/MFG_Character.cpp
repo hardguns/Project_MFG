@@ -672,6 +672,11 @@ void AMFG_Character::AddKey(FName NewKey)
 	DoorKeys.Add(NewKey);
 }
 
+bool AMFG_Character::TryAddHealth(float HealthToAdd)
+{
+	return HealthComponent->TryAddHealth(HealthToAdd);
+}
+
 bool AMFG_Character::HasKey(FName KeyTag)
 {
 	return DoorKeys.Contains(KeyTag);

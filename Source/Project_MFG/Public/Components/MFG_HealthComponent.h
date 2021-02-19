@@ -7,6 +7,7 @@
 #include "MFG_HealthComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FOnHealthChangeSignature, UMFG_HealthComponent*, HealthComponent, AActor*, DamagedActor, float, Damage, const UDamageType*, DamageType, AController*, InstigatedBy, AActor*, DamageCauser);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeadSignature, AActor*, DamageCauser);
 
 UCLASS( ClassGroup=(MFG), meta=(BlueprintSpawnableComponent) )
 class PROJECT_MFG_API UMFG_HealthComponent : public UActorComponent
@@ -45,12 +46,15 @@ public:
 	UFUNCTION()
 	float GetMaxHealth() { return MaxHealth; };
 
-	void SetNewHealth(float HealthAmount);
+	bool TryAddHealth(float HealthToAdd);
 
 public:
 
 	UPROPERTY(BlueprintAssignable)
 		FOnHealthChangeSignature OnHealthChangeDelegate;
+
+	UPROPERTY(BlueprintAssignable)
+		FOnDeadSignature OnDeadDelegate;
 
 protected:
 	// Called when the game starts
@@ -58,5 +62,5 @@ protected:
 
 	UFUNCTION()
 	void TakingDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
-
+	
 };

@@ -13,12 +13,6 @@ UMFG_HealthComponent::UMFG_HealthComponent()
 	MaxHealth = 100.0f;
 }
 
-
-void UMFG_HealthComponent::SetNewHealth(float HealthAmount)
-{
-	Health = FMath::Clamp(Health + HealthAmount, 0.0f, MaxHealth);
-}
-
 // Called when the game starts
 void UMFG_HealthComponent::BeginPlay()
 {
@@ -45,6 +39,7 @@ void UMFG_HealthComponent::TakingDamage(AActor* DamagedActor, float Damage, cons
 	if (Health == 0.0f)
 	{
 		bIsDead = true;
+		OnDeadDelegate.Broadcast(DamageCauser);
 	}
 
 	OnHealthChangeDelegate.Broadcast(this, DamagedActor, Damage, DamageType, InstigatedBy, DamageCauser);
@@ -53,5 +48,27 @@ void UMFG_HealthComponent::TakingDamage(AActor* DamagedActor, float Damage, cons
 	{
 		UE_LOG(LogTemp, Log, TEXT("My health is: %s"), *FString::SanitizeFloat(Health));
 	}
+}
+
+bool UMFG_HealthComponent::TryAddHealth(float HealthToAdd)
+{
+	if (bIsDead)
+	{
+		return false;
+	}
+
+	if (Health == MaxHealth)
+	{
+		return false;
+	}
+
+	Health = FMath::Clamp(Health + HealthToAdd, 0.0f, MaxHealth);
+
+	if (bDebug)
+	{
+		UE_LOG(LogTemp, Log, TEXT("My health is: %s"), *FString::SanitizeFloat(Health));
+	}
+
+	return true;
 }
 

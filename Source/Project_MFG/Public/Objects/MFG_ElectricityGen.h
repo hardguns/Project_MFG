@@ -9,6 +9,8 @@
 class UStaticMeshComponent;
 class UParticleSystem;
 class AMFG_EPlatform;
+class AMFG_BotSpawner;
+
 /**
  * 
  */
@@ -31,6 +33,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Connected Objects")
 		TArray<AMFG_InteractiveObject*> LevelElectricityGenerators;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Conected Spawners")
+		TArray<AMFG_BotSpawner*> BotSpawners;
+
 public:
 
 	AMFG_ElectricityGen();
@@ -38,6 +43,8 @@ public:
 public:
 
 	void ActivateElectricity();
+
+	void ActivateSpawners();
 
 protected:
 

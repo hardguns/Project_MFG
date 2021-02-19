@@ -347,6 +347,8 @@ public:
 
 	void AddKey(FName NewKey);
 
+	bool TryAddHealth(float HealthToAdd);
+
 	bool HasKey(FName KeyTag);
 
 	void SetMeleeDetectorCollision(ECollisionEnabled::Type NewCollisionState);
