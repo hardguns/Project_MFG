@@ -31,8 +31,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Light")
 		float LightIntensity;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Activable Action")
+		bool bNeedsKey;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Activable Action")
+		bool bCanBeActivatedOnce; 
+		
+	UPROPERTY(BlueprintReadOnly, Category = "Activable Action")
+		bool bWasActivated;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Activable Action")
+		FName ActivableTag;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Activables")
-		TArray<AMFG_InteractiveObject*> ActivableObjects;
+		TArray<AActor*> ActivableObjects;
 
 public:
 
@@ -40,12 +52,16 @@ public:
 
 public:
 
+	void CheckActivable(AMFG_Character* OtherActor);
+
 	void UseActivable();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Activables")
 	void BP_UseActivator();
 
 protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
 	virtual void Interact(AMFG_Character* OtherActor) override;
 

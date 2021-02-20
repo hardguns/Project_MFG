@@ -242,7 +242,7 @@ void AMFG_Character::DoAction()
 		AMFG_Activable* ActivableObj = Cast<AMFG_Activable>(InteractiveObject);
 		if (IsValid(ActivableObj))
 		{
-			ActivableObj->UseActivable();
+			ActivableObj->CheckActivable(this);
 		}
 	}
 
@@ -670,6 +670,11 @@ void AMFG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 void AMFG_Character::AddKey(FName NewKey)
 {
 	DoorKeys.Add(NewKey);
+}
+
+void AMFG_Character::RemoveKey(FName KeyToRemove)
+{
+	DoorKeys.Remove(KeyToRemove);
 }
 
 bool AMFG_Character::TryAddHealth(float HealthToAdd)

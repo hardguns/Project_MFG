@@ -20,7 +20,7 @@ protected:
 
 public:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Interactive Object")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interactive Object")
 		bool bSwitchState;
 	
 public:	

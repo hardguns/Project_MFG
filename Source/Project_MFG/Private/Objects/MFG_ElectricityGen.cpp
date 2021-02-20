@@ -7,7 +7,7 @@
 #include "Particles/ParticleSystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "MFG_EPlatform.h"
-#include "Enemy/MFG_BotSpawner.h" 
+#include "Objects/MFG_Activable.h"
 
 AMFG_ElectricityGen::AMFG_ElectricityGen() 
 {
@@ -100,11 +100,11 @@ void AMFG_ElectricityGen::ActivateElectricity()
 
 void AMFG_ElectricityGen::ActivateSpawners()
 {
-	if (BotSpawners.Num() > 0)
+	if (BotSpawnersActivables.Num() > 0)
 	{
-		for (AMFG_BotSpawner* BotSpawner : BotSpawners)
+		for (AMFG_Activable* BotSpawnerActivable : BotSpawnersActivables)
 		{
-			BotSpawner->SetActiveState(true);
+			BotSpawnerActivable->UseActivable();
 		}
 	}
 }

@@ -186,18 +186,19 @@ void AMFG_Bot::GiveXP(AActor* DamageCauser)
 
 bool AMFG_Bot::TrySpawnLoot()
 {
-	if (!IsValid(LootItemClass))
+	if (LootItemsClass.Num() == 0)
 	{
 		return false;
 	}
 
 	float SelectedProbability = FMath::RandRange(0.0f, 100.0f);
+	int SelectedItem = FMath::RandRange(0, LootItemsClass.Num() - 1);
 	if (SelectedProbability <= LootProbability)
 	{
 		FActorSpawnParameters SpawnParameters;
 		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		GetWorld()->SpawnActor<AMFG_Item>(LootItemClass, GetActorLocation(), FRotator::ZeroRotator, SpawnParameters);
+		GetWorld()->SpawnActor<AMFG_Item>(LootItemsClass[SelectedItem], GetActorLocation(), FRotator::ZeroRotator, SpawnParameters);
 	}
 
 	return true;

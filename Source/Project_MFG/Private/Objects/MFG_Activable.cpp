@@ -8,8 +8,9 @@
 #include "Components/PointLightComponent.h"
 #include "MFG_Character.h"
 #include "Objects/MFG_Launch_Pad.h"
+#include "Enemy/MFG_BotSpawner.h"
 
-AMFG_Activable::AMFG_Activable() 
+AMFG_Activable::AMFG_Activable()
 {
 	ActivatorMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ActivatorMeshComponent"));
 	ActivatorMeshComponent->SetupAttachment(RootComponent);
@@ -20,6 +21,18 @@ AMFG_Activable::AMFG_Activable()
 	PointLight->Intensity = LightIntensity;
 	//PointLight->SetLightColor(FLinearColor(222,0,0,0), true);
 	PointLight->SetupAttachment(RootComponent);
+
+	ActivableTag = "ActivableA";
+}
+
+void AMFG_Activable::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (IsValid(PointLight))
+	{
+		PointLight->SetLightColor(bSwitchState ? FLinearColor(0.0091f, 0.33f, 0.0f) : FLinearColor(0.49f, 0.0f, 0.0f), true);
+	}
 }
 
 void AMFG_Activable::Interact(AMFG_Character* OtherActor)
@@ -50,18 +63,59 @@ void AMFG_Activable::StopInteract(AMFG_Character* OtherActor)
 	}
 }
 
-void AMFG_Activable::UseActivable()
+void AMFG_Activable::CheckActivable(AMFG_Character* OtherActor)
 {
-	bSwitchState = !bSwitchState;
-	for (int i = 0; i < ActivableObjects.Num(); i++)
+	if (IsValid(OtherActor) && OtherActor->GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
 	{
-		AMFG_InteractiveObject* ActivableObject = Cast<AMFG_InteractiveObject>(ActivableObjects[i]);
-		if (IsValid(ActivableObject))
+		if (bNeedsKey)
 		{
-			ActivableObject->bSwitchState = bSwitchState;
-			//bSwitchState = !activeState;
+			if (OtherActor->HasKey(ActivableTag) && !bWasActivated)
+			{
+				UseActivable();
+				OtherActor->RemoveKey(ActivableTag);
+
+				//Was activated variable works only if a activable can be activated only once
+				if (bCanBeActivatedOnce)
+				{
+					bWasActivated = true;
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Log, TEXT("Needs key: %s or it was activated"), *ActivableTag.ToString());
+			}
+		}
+		else
+		{
+			UseActivable();
 		}
 	}
 
 	BP_UseActivator();
+}
+
+void AMFG_Activable::UseActivable()
+{
+	bSwitchState = !bSwitchState;
+
+	if (IsValid(PointLight))
+	{
+		PointLight->SetLightColor(bSwitchState ? FLinearColor(0.0091f, 0.33f, 0.0f) : FLinearColor(0.49f, 0.0f, 0.0f), true);
+	}
+
+	for (int i = 0; i < ActivableObjects.Num(); i++)
+	{
+		//Looks for an Interactive object or a bot spawner to activate or deactivated;
+		AMFG_InteractiveObject* ActivableObject = Cast<AMFG_InteractiveObject>(ActivableObjects[i]);
+		if (IsValid(ActivableObject))
+		{
+			ActivableObject->bSwitchState = bSwitchState;
+		}
+
+		AMFG_BotSpawner* ActivableSpawner = Cast<AMFG_BotSpawner>(ActivableObjects[i]);
+		if (IsValid(ActivableSpawner))
+		{
+			ActivableSpawner->SetActiveState(bSwitchState);
+		}
+	}
 }

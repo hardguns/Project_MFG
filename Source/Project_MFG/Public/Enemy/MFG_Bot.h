@@ -66,7 +66,7 @@ protected:
 		AMFG_Character* PlayerCharacter;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Loot System")
-		TSubclassOf<AMFG_Item> LootItemClass;
+		TArray<TSubclassOf<AMFG_Item>> LootItemsClass;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Spawner")
 		AMFG_BotSpawner* MySpawner;

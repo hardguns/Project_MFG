@@ -347,6 +347,8 @@ public:
 
 	void AddKey(FName NewKey);
 
+	void RemoveKey(FName KeyToRemove);
+
 	bool TryAddHealth(float HealthToAdd);
 
 	bool HasKey(FName KeyTag);
