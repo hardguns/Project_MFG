@@ -132,6 +132,8 @@ void AMFG_Bot::SelfDestruction()
 		DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadius, 20, FColor::Red, true, 5.0f, 0, 2.0f);
 	}
 
+	TrySpawnLoot();
+
 	if (IsValid(MySpawner))
 	{
 		MySpawner->NotifyBotDead();
@@ -192,12 +194,20 @@ bool AMFG_Bot::TrySpawnLoot()
 	}
 
 	float SelectedProbability = FMath::RandRange(0.0f, 100.0f);
-	int SelectedItem = FMath::RandRange(0, LootItemsClass.Num() - 1);
-	if (SelectedProbability <= LootProbability)
-	{
-		FActorSpawnParameters SpawnParameters;
-		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
+	if (!MySpawner->GetBotSpawnerState() && MySpawner->GetCurrentBotsOnScene() == 1)
+	{
+		if (IsValid(LastLootItemClass))
+		{
+			GetWorld()->SpawnActor<AMFG_Item>(LastLootItemClass, GetActorLocation(), FRotator::ZeroRotator, SpawnParameters);
+		}
+	}
+	else if (SelectedProbability <= LootProbability)
+	{
+		int SelectedItem = FMath::RandRange(0, LootItemsClass.Num() - 1);
 		GetWorld()->SpawnActor<AMFG_Item>(LootItemsClass[SelectedItem], GetActorLocation(), FRotator::ZeroRotator, SpawnParameters);
 	}
 

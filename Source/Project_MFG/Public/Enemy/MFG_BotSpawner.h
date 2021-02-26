@@ -59,4 +59,8 @@ public:
 
 	void SetActiveState(bool NewState) { bIsActive = NewState; };
 
+	bool GetBotSpawnerState() { return bIsActive; };
+
+	int GetCurrentBotsOnScene() { return CurrentBotsCounter; };
+
 };

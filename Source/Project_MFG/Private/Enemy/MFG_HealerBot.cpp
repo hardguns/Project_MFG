@@ -327,7 +327,8 @@ void AMFG_HealerBot::AttackPlayer()
 		{
 			FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), PlayerReference->GetActorLocation());
 			SetActorRotation(NewRotation);
-			FVector ShotLocation = (UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 70) + GetActorLocation();
+			FVector ShotLocation = (UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 75) + GetActorLocation();
+			ShotLocation.Z += 20.0f;
 			AMFG_Projectile* CurrentProjectile = GetWorld()->SpawnActor<AMFG_Projectile>(ProjectileClass, ShotLocation, NewRotation);
 		}
 	}

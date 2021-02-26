@@ -68,6 +68,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Loot System")
 		TArray<TSubclassOf<AMFG_Item>> LootItemsClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Loot System")
+		TSubclassOf<AMFG_Item> LastLootItemClass;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Spawner")
 		AMFG_BotSpawner* MySpawner;
 
