@@ -5,6 +5,8 @@
 #include "Components/BillboardComponent.h"
 #include "Enemy/MFG_Bot.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Items/MFG_Item.h"
+#include "Items/MFG_DoorKey.h"
 
 // Sets default values
 AMFG_BotSpawner::AMFG_BotSpawner()
@@ -18,6 +20,9 @@ AMFG_BotSpawner::AMFG_BotSpawner()
 	bIsActive = true;
 	MaxBotsCounter = 1;
 	TimeToSpawn = 1.0f;
+	KeyTag = "None";
+
+	LootProbability = 100.0f;
 }
 
 // Called when the game starts or when spawned
@@ -72,8 +77,42 @@ FVector AMFG_BotSpawner::GetSpawnPoint()
 	}
 }
 
+bool AMFG_BotSpawner::TrySpawnLoot()
+{
+	if (!IsValid(LootItemClass))
+	{
+		return false;
+	}
+
+	if (bHasSpawnedItem)
+	{
+		return false;
+	}
+
+	float SelectedProbability = FMath::RandRange(0.0f, 100.0f);
+
+	if (SelectedProbability <= LootProbability && !bIsActive)
+	{
+		FTransform ItemTransform = FTransform(FRotator::ZeroRotator, GetActorLocation());
+		AMFG_Item* NewItem = GetWorld()->SpawnActorDeferred<AMFG_Item>(LootItemClass, ItemTransform);
+
+		AMFG_DoorKey* PossibleDoorKey = Cast<AMFG_DoorKey>(NewItem);
+		if (IsValid(PossibleDoorKey))
+		{
+			PossibleDoorKey->SetKeyTag(KeyTag);
+		}
+		NewItem->FinishSpawning(ItemTransform);
+
+		bHasSpawnedItem = true;
+	}
+
+	return true;
+}
+
 void AMFG_BotSpawner::NotifyBotDead()
 {
 	CurrentBotsCounter--;
+
+	TrySpawnLoot();
 }
 

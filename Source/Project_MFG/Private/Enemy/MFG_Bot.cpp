@@ -4,6 +4,7 @@
 #include "Enemy/MFG_Bot.h"
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "MFG_Character.h"
 #include "NavigationSystem/Public/NavigationSystem.h"
 #include "NavigationSystem/Public/NavigationPath.h"
@@ -14,6 +15,7 @@
 #include "Particles/ParticleSystem.h"
 #include "Weapons/MFG_Weapon.h"
 #include "Items/MFG_Item.h"
+#include "Items/MFG_DoorKey.h"
 #include "Enemy/MFG_BotSpawner.h"
 
 // Sets default values
@@ -132,8 +134,6 @@ void AMFG_Bot::SelfDestruction()
 		DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadius, 20, FColor::Red, true, 5.0f, 0, 2.0f);
 	}
 
-	TrySpawnLoot();
-
 	if (IsValid(MySpawner))
 	{
 		MySpawner->NotifyBotDead();
@@ -194,20 +194,43 @@ bool AMFG_Bot::TrySpawnLoot()
 	}
 
 	float SelectedProbability = FMath::RandRange(0.0f, 100.0f);
-	
+	float CurrentLootProbability = 0;
+	int SelectedItem = FMath::RandRange(0, LootItemsClass.Num() - 1);
+
+	if (LootProbabilities.Num() > 0)
+	{
+		CurrentLootProbability = LootProbabilities[SelectedItem];
+	}
+	else 
+	{
+		CurrentLootProbability = LootProbability;
+	}
+
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	if (!MySpawner->GetBotSpawnerState() && MySpawner->GetCurrentBotsOnScene() == 1)
+	if (!MySpawner->GetBotSpawnerState() && MySpawner->GetCurrentBotsOnScene() == 1 && !PlayerCharacter->HasKey(MySpawner->GetKeyTagToSpawn()))
 	{
 		if (IsValid(LastLootItemClass))
 		{
-			GetWorld()->SpawnActor<AMFG_Item>(LastLootItemClass, GetActorLocation(), FRotator::ZeroRotator, SpawnParameters);
+			//FVector SpawnPoint = UKismetMathLibrary::TransformLocation(GetActorTransform(), );
+			FTransform ItemTransform = FTransform(FRotator::ZeroRotator, GetActorLocation());
+			AMFG_Item* NewItem = GetWorld()->SpawnActorDeferred<AMFG_Item>(LastLootItemClass, ItemTransform);
+
+			AMFG_DoorKey* PossibleDoorKey = Cast<AMFG_DoorKey>(NewItem);
+			if (IsValid(PossibleDoorKey))
+			{
+				//if (!MySpawner->GetKeyTagToSpawn().IsNone)
+				//{
+					PossibleDoorKey->SetKeyTag(MySpawner->GetKeyTagToSpawn());
+				//}
+
+			}
+			NewItem->FinishSpawning(ItemTransform);
 		}
 	}
-	else if (SelectedProbability <= LootProbability)
+	else if (SelectedProbability <= CurrentLootProbability)
 	{
-		int SelectedItem = FMath::RandRange(0, LootItemsClass.Num() - 1);
 		GetWorld()->SpawnActor<AMFG_Item>(LootItemsClass[SelectedItem], GetActorLocation(), FRotator::ZeroRotator, SpawnParameters);
 	}
 

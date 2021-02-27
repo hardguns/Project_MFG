@@ -39,6 +39,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Getter")
 	FName GetKeyTag() const { return KeyTag; };
 
+	UFUNCTION(BlueprintCallable, Category = "Setter")
+	void SetKeyTag(FName NewTag) { KeyTag = NewTag; };
+
 protected:
 
 	virtual void Pickup(AMFG_Character* PickupCharacter) override;
