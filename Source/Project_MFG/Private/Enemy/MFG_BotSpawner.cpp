@@ -91,6 +91,11 @@ bool AMFG_BotSpawner::TrySpawnLoot()
 
 	float SelectedProbability = FMath::RandRange(0.0f, 100.0f);
 
+	if (CurrentBotsCounter == 0)
+	{
+		SelectedProbability = LootProbability;
+	}
+
 	if (SelectedProbability <= LootProbability && !bIsActive)
 	{
 		FTransform ItemTransform = FTransform(FRotator::ZeroRotator, GetActorLocation());
