@@ -17,6 +17,7 @@
 #include "Items/MFG_Item.h"
 #include "Items/MFG_DoorKey.h"
 #include "Enemy/MFG_BotSpawner.h"
+#include "Core/MFG_GameInstance.h"
 
 // Sets default values
 AMFG_Bot::AMFG_Bot()
@@ -56,6 +57,8 @@ void AMFG_Bot::BeginPlay()
 	{
 		PlayerCharacter = Cast<AMFG_Character>(PlayerPawn);
 	}
+
+	GameInstanceReference = Cast<UMFG_GameInstance>(GetWorld()->GetGameInstance());
 
 	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &AMFG_Bot::TakingDamage);
 	HealthComponent->OnDeadDelegate.AddDynamic(this, &AMFG_Bot::GiveXP);
@@ -102,6 +105,11 @@ void AMFG_Bot::TakingDamage(UMFG_HealthComponent* CurrentHealthComponent, AActor
 				if (IsValid(RifleOwner) && RifleOwner->GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
 				{
 					TrySpawnLoot();
+
+					if (IsValid(GameInstanceReference))
+					{
+						GameInstanceReference->AddEnemyDefeatedToCounter();
+					}
 				}
 			}
 		}

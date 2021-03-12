@@ -9,6 +9,7 @@
 #include "Items/MFG_Item.h"
 #include "Enemy/Controller/MFG_AIController.h"
 #include "AIModule/Classes/Perception/AISense_Damage.h"
+#include "Core/MFG_GameInstance.h"
 
 AMFG_Enemy::AMFG_Enemy()
 {
@@ -87,6 +88,11 @@ void AMFG_Enemy::HealthChanged(UMFG_HealthComponent* CurrentHealthComponent, AAc
 	{
 		MyAIController->UnPossess();
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle_DestroyEnemy, this, &AMFG_Enemy::DestroyEnemy, 4.0f, false);
+
+		if (IsValid(GameInstanceReference))
+		{
+			GameInstanceReference->AddEnemyDefeatedToCounter();
+		}
 	}
 	else
 	{

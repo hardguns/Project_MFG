@@ -19,6 +19,7 @@ class AMFG_GameMode;
 class UParticleSystem;
 class AMFG_LaserProjectile;
 class AMFG_Shield;
+class UMFG_GameInstance;
 
 UENUM()
 enum class EMFG_CharacterType : uint8
@@ -174,7 +175,10 @@ protected:
 		FName AbilitySocketName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
-		FName TraceParamName;
+		FName TraceParamName; 
+		
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Levels")
+		FName MainMenuMapName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
 		bool bIsCrouching;
@@ -242,6 +246,8 @@ protected:
 	UAnimInstance* MyAnimInstance;
 
 	AMFG_GameMode* GameModeReference;
+
+	UMFG_GameInstance* GameInstanceReference;
 
 	FTimerHandle TimerHandle_Ultimate;
 
@@ -322,6 +328,8 @@ protected:
 	void StartUltimate();
 
 	void StopUltimate();
+
+	void GoToMainMenu();
 
 	void AbilityReload();
 

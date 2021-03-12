@@ -25,6 +25,7 @@
 #include "Components/ActorComponent.h"
 #include "Weapons/MFG_LaserProjectile.h"
 #include "Objects/MFG_Shield.h"
+#include "Core/MFG_GameInstance.h" 
 
 // Sets default values
 AMFG_Character::AMFG_Character()
@@ -102,6 +103,8 @@ AMFG_Character::AMFG_Character()
 
 	InteractiveObject = NULL;
 
+	MainMenuMapName = "MainMenuMap";
+
 }
 
 FVector AMFG_Character::GetPawnViewLocation() const
@@ -140,6 +143,8 @@ void AMFG_Character::InitializeReferences()
 	}
 
 	GameModeReference = Cast<AMFG_GameMode>(GetWorld()->GetAuthGameMode());
+
+	GameInstanceReference = Cast<UMFG_GameInstance>(GetWorld()->GetGameInstance());
 }
 
 void AMFG_Character::MoveForward(float value)
@@ -476,6 +481,16 @@ void AMFG_Character::StopUltimate()
 
 }
 
+void AMFG_Character::GoToMainMenu()
+{
+	if (IsValid(GameInstanceReference))
+	{
+		GameInstanceReference->SaveData();
+	}
+
+	UGameplayStatics::OpenLevel(GetWorld(), MainMenuMapName);
+}
+
 void AMFG_Character::SetAbilityBehavior()
 {
 	AActor* CurrentCharacterActor = GetOwner();
@@ -665,6 +680,7 @@ void AMFG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Ultimate", IE_Pressed, this, &AMFG_Character::StartUltimate);
 	PlayerInputComponent->BindAction("Ultimate", IE_Released, this, &AMFG_Character::StopUltimate);
 
+	PlayerInputComponent->BindAction("Exit", IE_Pressed, this, &AMFG_Character::GoToMainMenu);
 }
 
 void AMFG_Character::AddKey(FName NewKey)

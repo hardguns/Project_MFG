@@ -13,6 +13,7 @@ class UParticleSystem;
 class USphereComponent;
 class AMFG_Item;
 class AMFG_BotSpawner;
+class UMFG_GameInstance;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_Bot : public APawn
@@ -81,6 +82,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Bot Effect")
 		UParticleSystem* ExplosionEffect;
+
+	UMFG_GameInstance* GameInstanceReference;
 
 	FTimerHandle TimerHandle_SelfDamage;
 

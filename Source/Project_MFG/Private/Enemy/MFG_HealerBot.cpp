@@ -21,6 +21,7 @@
 #include "Weapons/MFG_Projectile.h"
 #include "Weapons/MFG_Weapon.h"
 #include "Items/MFG_Item.h"
+#include "Core/MFG_GameInstance.h"
 
 // Sets default values
 AMFG_HealerBot::AMFG_HealerBot()
@@ -70,6 +71,8 @@ void AMFG_HealerBot::BeginPlay()
 		PlayerReference = Cast<AMFG_Character>(PlayerPawn);
 	}
 
+	GameInstanceReference = Cast<UMFG_GameInstance>(GetWorld()->GetGameInstance());
+
 	if (IsValid(DecalEffect))
 	{
 		DecalEffect->DecalSize.Y = ActionRadius;
@@ -107,6 +110,12 @@ void AMFG_HealerBot::TakingDamage(UMFG_HealthComponent* CurrentHealthComponent, 
 		}
 
 		GetWorldTimerManager().ClearTimer(TimerHandle_BeginAttackBehaviour);
+
+		if (IsValid(GameInstanceReference))
+		{
+			GameInstanceReference->AddEnemyDefeatedToCounter();
+		}
+
 		Destroy();
 	}
 }

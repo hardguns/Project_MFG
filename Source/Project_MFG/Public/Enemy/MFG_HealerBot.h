@@ -17,6 +17,7 @@ class UDecalComponent;
 class AMFG_Shield;
 class AMFG_Projectile;
 class AMFG_Item;
+class UMFG_GameInstance;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_HealerBot : public APawn
@@ -119,6 +120,8 @@ protected:
 	UMaterialInstanceDynamic* BotMaterial;
 
 	UMaterialInstanceDynamic* DecalMaterial;
+
+	UMFG_GameInstance* GameInstanceReference;
 
 	FTimerHandle TimerHandle_HealTimer;
 
