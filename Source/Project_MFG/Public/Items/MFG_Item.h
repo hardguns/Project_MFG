@@ -8,6 +8,7 @@
 
 class USphereComponent;
 class AMFG_Character;
+class AMFG_GameMode;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_Item : public AActor
@@ -18,6 +19,11 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		USphereComponent* MainColliderComponent;
+
+protected:
+
+	UPROPERTY(BlueprintReadOnly)
+	AMFG_GameMode* GameModeReference;
 
 public:
 	// Sets default values for this actor's properties

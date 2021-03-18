@@ -25,6 +25,8 @@ void UMFG_HealthComponent::BeginPlay()
 	{
 		MyOwner->OnTakeAnyDamage.AddDynamic(this, &UMFG_HealthComponent::TakingDamage);
 	}
+
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_UpdateInitialHealth, this, &UMFG_HealthComponent::UpdateInitialHealth, 0.2f, false);
 }
 
 void UMFG_HealthComponent::TakingDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
@@ -43,6 +45,7 @@ void UMFG_HealthComponent::TakingDamage(AActor* DamagedActor, float Damage, cons
 	}
 
 	OnHealthChangeDelegate.Broadcast(this, DamagedActor, Damage, DamageType, InstigatedBy, DamageCauser);
+	OnHealthUpdateDelegate.Broadcast(Health, MaxHealth);
 
 	if (bDebug)
 	{
@@ -63,6 +66,7 @@ bool UMFG_HealthComponent::TryAddHealth(float HealthToAdd)
 	}
 
 	Health = FMath::Clamp(Health + HealthToAdd, 0.0f, MaxHealth);
+	OnHealthUpdateDelegate.Broadcast(Health, MaxHealth);
 
 	if (bDebug)
 	{
@@ -70,5 +74,10 @@ bool UMFG_HealthComponent::TryAddHealth(float HealthToAdd)
 	}
 
 	return true;
+}
+
+void UMFG_HealthComponent::UpdateInitialHealth()
+{
+	OnHealthUpdateDelegate.Broadcast(Health, MaxHealth);
 }
 

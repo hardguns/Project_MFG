@@ -8,6 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FOnHealthChangeSignature, UMFG_HealthComponent*, HealthComponent, AActor*, DamagedActor, float, Damage, const UDamageType*, DamageType, AController*, InstigatedBy, AActor*, DamageCauser);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeadSignature, AActor*, DamageCauser);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthUpdateSignature, float, CurrentHealth, float, MaxHealth);
 
 UCLASS( ClassGroup=(MFG), meta=(BlueprintSpawnableComponent) )
 class PROJECT_MFG_API UMFG_HealthComponent : public UActorComponent
@@ -31,6 +32,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Health Component")
 		AActor* MyOwner;
 
+	FTimerHandle TimerHandle_UpdateInitialHealth;
 
 public:
 
@@ -48,6 +50,8 @@ public:
 
 	bool TryAddHealth(float HealthToAdd);
 
+	void UpdateInitialHealth();
+
 public:
 
 	UPROPERTY(BlueprintAssignable)
@@ -55,6 +59,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 		FOnDeadSignature OnDeadDelegate;
+
+	UPROPERTY(BlueprintAssignable)
+		FOnHealthUpdateSignature OnHealthUpdateDelegate;
 
 protected:
 	// Called when the game starts

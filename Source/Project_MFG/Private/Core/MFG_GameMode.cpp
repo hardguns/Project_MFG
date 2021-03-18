@@ -8,6 +8,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "MFG_SpectatingCamera.h"
 
+AMFG_GameMode::AMFG_GameMode()
+{
+	MainMenuMapName = "MainMenuMap";
+}
+
 void AMFG_GameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -63,11 +68,23 @@ void AMFG_GameMode::MoveCameraToSpectatingPoint(AMFG_Character* Character, AMFG_
 	}
 }
 
+void AMFG_GameMode::AddKeyToCharacter(AMFG_Character* KeyOwner, FName KeyTag)
+{
+	if(IsValid(KeyOwner))
+	{
+		OnKeyAddedDelegate.Broadcast(KeyTag);
+		KeyOwner->AddKey(KeyTag);
+	}
+}
+
 void AMFG_GameMode::Victory(AMFG_Character* Character)
 {
 	Character->DisableInput(nullptr);
 
 	MoveCameraToSpectatingPoint(Character, VictoryCamera);
+	OnVictoryDelegate.Broadcast();
+
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_BackToMainMenu, this, &AMFG_GameMode::BackToMainMenu, 3.0f, false);
 	
 	BP_Victory(Character);
 }
@@ -79,7 +96,7 @@ void AMFG_GameMode::GameOver(AMFG_Character* Character)
 
 	if (Character->HasToDestroy())
 	{
-		//Utilizado en funciones de camara aerea... quita el pawn del controlador
+		//Used in aerial camera functions... detach pawn from controller
 		Character->DetachFromControllerPendingDestroy();
 		Character->SetLifeSpan(5.0f);
 	}
@@ -89,5 +106,14 @@ void AMFG_GameMode::GameOver(AMFG_Character* Character)
 		MoveCameraToSpectatingPoint(Character, GameOverCamera);
 	}
 
+	OnGameOverDelegate.Broadcast();
+
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_BackToMainMenu, this, &AMFG_GameMode::BackToMainMenu, 3.0f, false);
+
 	BP_GameOver(Character);
+}
+
+void AMFG_GameMode::BackToMainMenu()
+{
+	UGameplayStatics::OpenLevel(GetWorld(), MainMenuMapName);
 }

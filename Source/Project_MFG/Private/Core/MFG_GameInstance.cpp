@@ -13,6 +13,7 @@ UMFG_GameInstance::UMFG_GameInstance()
 void UMFG_GameInstance::AddEnemyDefeatedToCounter()
 {
 	EnemiesDefeatedCounter++;
+	OnEnemyKilledDelegate.Broadcast(EnemiesDefeatedCounter);
 	BP_AddEnemyDefeatedToCounter();
 }
 

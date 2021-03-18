@@ -10,6 +10,8 @@
 #include "Enemy/Controller/MFG_AIController.h"
 #include "AIModule/Classes/Perception/AISense_Damage.h"
 #include "Core/MFG_GameInstance.h"
+#include "Components/WidgetComponent.h"
+#include "UI/Enemy/MFG_EnemyHealthBar.h"
 
 AMFG_Enemy::AMFG_Enemy()
 {
@@ -19,6 +21,9 @@ AMFG_Enemy::AMFG_Enemy()
 	XPValue = 20.0f;
 
 	LootProbability = 100.0f;
+
+	WidgetHealthBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetHealthBarComponent"));
+	WidgetHealthBarComponent->SetupAttachment(RootComponent);
 }
 
 void AMFG_Enemy::BeginPlay()
@@ -29,6 +34,17 @@ void AMFG_Enemy::BeginPlay()
 
 	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &AMFG_Enemy::HealthChanged);
 	HealthComponent->OnDeadDelegate.AddDynamic(this, &AMFG_Enemy::GiveXP);
+
+	UUserWidget* WidgetObject = WidgetHealthBarComponent->GetUserWidgetObject();
+	if (IsValid(WidgetObject))
+	{
+		EnemyHealthBar = Cast<UMFG_EnemyHealthBar>(WidgetObject);
+		if (IsValid(EnemyHealthBar))
+		{
+			HealthComponent->OnHealthUpdateDelegate.AddDynamic(EnemyHealthBar, &UMFG_EnemyHealthBar::UpdateHealth);
+			HideHealthBar();
+		}
+	}
 }
 
 void AMFG_Enemy::GiveXP(AActor* DamageCauser)
@@ -84,6 +100,18 @@ void AMFG_Enemy::HealthChanged(UMFG_HealthComponent* CurrentHealthComponent, AAc
 	{
 		return;
 	}
+
+	if (bIsShowingHealthBar)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_HideHealthBar);
+	}
+	else
+	{
+		ShowHealthBar();
+	}
+	
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_HideHealthBar, this, &AMFG_Enemy::HideHealthBar, 1.0f, false);
+
 	if (CurrentHealthComponent->IsDead())
 	{
 		MyAIController->UnPossess();
@@ -93,6 +121,8 @@ void AMFG_Enemy::HealthChanged(UMFG_HealthComponent* CurrentHealthComponent, AAc
 		{
 			GameInstanceReference->AddEnemyDefeatedToCounter();
 		}
+
+		HideHealthBar();
 	}
 	else
 	{
@@ -109,4 +139,16 @@ void AMFG_Enemy::HealthChanged(UMFG_HealthComponent* CurrentHealthComponent, AAc
 void AMFG_Enemy::DestroyEnemy()
 {
 	Destroy();
+}
+
+void AMFG_Enemy::ShowHealthBar()
+{
+	bIsShowingHealthBar = true;
+	EnemyHealthBar->SetVisibility(ESlateVisibility::Visible);
+}
+
+void AMFG_Enemy::HideHealthBar()
+{
+	bIsShowingHealthBar = false;
+	EnemyHealthBar->SetVisibility(ESlateVisibility::Hidden);
 }

@@ -21,6 +21,9 @@ class AMFG_LaserProjectile;
 class AMFG_Shield;
 class UMFG_GameInstance;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUltimateUpdateSignature, float, CurrentUltimateXP, float, MaxUltimateXP);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUltimateStatusSignature, bool, bIsAvailable);
+
 UENUM()
 enum class EMFG_CharacterType : uint8
 {
@@ -259,6 +262,14 @@ protected:
 
 public:
 
+	UPROPERTY(BlueprintAssignable)
+		FOnUltimateUpdateSignature OnUltimateUpdateDelegate;
+
+	UPROPERTY(BlueprintAssignable)
+		FOnUltimateStatusSignature OnUltimateStatusDelegate;
+
+public:
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Action")
 		bool bCanUseItem;
 
@@ -396,6 +407,8 @@ public:
 	void SetShield(AMFG_Shield* NewShield);
 
 	AMFG_Shield* GetShieldActor() { return CurrentShield; };
+
+	UMFG_HealthComponent* GetHealthComponent(){ return HealthComponent; };
 
 protected:
 

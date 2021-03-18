@@ -3,7 +3,8 @@
 
 #include "Items/MFG_Item.h"
 #include "Components/SphereComponent.h"
-#include <MFG_Character.h>
+#include "Core/MFG_GameMode.h"
+#include "MFG_Character.h"
 
 // Sets default values
 AMFG_Item::AMFG_Item()
@@ -26,6 +27,7 @@ void AMFG_Item::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	GameModeReference = Cast<AMFG_GameMode>(GetWorld()->GetAuthGameMode());
 }
 
 // Called every frame

@@ -739,10 +739,12 @@ void AMFG_Character::GainUltimateXP(float XPGained)
 	}
 
 	CurrentUltimateXP = FMath::Clamp(CurrentUltimateXP + XPGained, 0.0f, MaxUltimateXP);
+	OnUltimateUpdateDelegate.Broadcast(CurrentUltimateXP, MaxUltimateXP);
 
 	if (CurrentUltimateXP == MaxUltimateXP)
 	{
 		bCanUseUltimate = true;
+		OnUltimateStatusDelegate.Broadcast(true);
 	}
 
 	BP_GainUltimateXP(XPGained);
@@ -751,6 +753,7 @@ void AMFG_Character::GainUltimateXP(float XPGained)
 void AMFG_Character::UpdateUltimateDuration(float Value)
 {
 	CurrentUltimateDuration = FMath::Clamp(CurrentUltimateDuration - Value, 0.0f, MaxUltimateDuration);
+	OnUltimateUpdateDelegate.Broadcast(CurrentUltimateDuration, MaxUltimateDuration);
 
 	BP_UpdateUltimateDuration(Value);
 
@@ -758,6 +761,7 @@ void AMFG_Character::UpdateUltimateDuration(float Value)
 	{
 		CurrentUltimateXP = 0.0f;
 		bIsUsingUltimate = false;
+		OnUltimateStatusDelegate.Broadcast(false);
 
 		SetCharacterSpeed();
 		PlayRate = 1.0f;

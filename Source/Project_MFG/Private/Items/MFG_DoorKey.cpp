@@ -3,6 +3,7 @@
 
 #include "Items/MFG_DoorKey.h"
 #include "Components/StaticMeshComponent.h"
+#include "Core/MFG_GameMode.h"
 #include "MFG_Character.h"
 
 AMFG_DoorKey::AMFG_DoorKey()
@@ -19,7 +20,13 @@ void AMFG_DoorKey::Pickup(AMFG_Character* PickupCharacter)
 {
 	Super::Pickup(PickupCharacter);
 
-	PickupCharacter->AddKey(KeyTag);
-	//PickupCharacter->GainUltimateXP(XPValue);
-	Destroy();
+	if (IsValid(PickupCharacter) && PickupCharacter->GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
+	{
+		if (IsValid(GameModeReference))
+		{
+			GameModeReference->AddKeyToCharacter(PickupCharacter, KeyTag);
+		}
+
+		Destroy();
+	}
 }
