@@ -39,10 +39,11 @@ void AMFG_LaserProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ProjectileCollision->OnComponentBeginOverlap.AddDynamic(this, &AMFG_LaserProjectile::OnLaserHit);
+	ProjectileCollision->OnComponentBeginOverlap.AddDynamic(this, &AMFG_LaserProjectile::OnLaserOverlap);
+	ProjectileCollision->OnComponentHit.AddDynamic(this, &AMFG_LaserProjectile::OnLaserHit);
 }
 
-void AMFG_LaserProjectile::OnLaserHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AMFG_LaserProjectile::OnLaserOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (IsValid(OtherActor))
 	{
@@ -55,6 +56,11 @@ void AMFG_LaserProjectile::OnLaserHit(UPrimitiveComponent* OverlappedComponent, 
 
 		Destroy();
 	}
+}
+
+void AMFG_LaserProjectile::OnLaserHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	Destroy();
 }
 
 // Called every frame

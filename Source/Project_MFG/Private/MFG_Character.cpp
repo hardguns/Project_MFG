@@ -95,11 +95,11 @@ AMFG_Character::AMFG_Character()
 
 	bCanUseAbility = true;
 	bIsUsingAbility = false;
-	LaserShotsLeft = 3.0f;
+	AbilityAmountLeft = 3.0f;
 	LaserTraceLenght = 8000.0f;
 	AbilitySocketName = "Muzzle_05";
-	LaserReloadTimeSpeed = 3.0f;
-	MaximumLaserShots = 3.0f;
+	AbilityReloadTimeSpeed = 3.0f;
+	MaximumAbilityAmount = 3.0f;
 
 	InteractiveObject = NULL;
 
@@ -420,17 +420,20 @@ void AMFG_Character::StopMelee()
 
 void AMFG_Character::StartAbility()
 {
-	if (LaserShotsLeft > 0 && bCanUseAbility && !bIsUsingAbility)
+	if (AbilityAmountLeft > 0 && bCanUseAbility && !bIsUsingAbility)
 	{
 		SetAbilityState(true);
+		
 		if (IsValid(MyAnimInstance) && IsValid(AbilityMontage))
 		{
 			MyAnimInstance->Montage_Play(AbilityMontage);
 		}
 
-		LaserShotsLeft--;
+		AbilityAmountLeft--;
 
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ReloadAbilityShots, this, &AMFG_Character::AbilityReload, LaserReloadTimeSpeed, true);
+		OnAbilityChangeDelegate.Broadcast(AbilityAmountLeft);
+
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ReloadAbilityShots, this, &AMFG_Character::AbilityReload, AbilityReloadTimeSpeed, true);
 
 		BP_StartAbility();
 	}
@@ -535,9 +538,11 @@ void AMFG_Character::SetAbilityBehavior()
 
 void AMFG_Character::AbilityReload()
 {
-	if (LaserShotsLeft < MaximumLaserShots)
+	if (AbilityAmountLeft < MaximumAbilityAmount)
 	{
-		LaserShotsLeft++;
+		AbilityAmountLeft++;
+
+		OnAbilityChangeDelegate.Broadcast(AbilityAmountLeft);
 	}
 	else
 	{
@@ -804,4 +809,15 @@ void AMFG_Character::BeginUltimateBehavior()
 void AMFG_Character::SetShield(AMFG_Shield* NewShield)
 {
 	CurrentShield = NewShield;
+}
+
+UTexture* AMFG_Character::GetAbilityIcon(int index)
+{
+	if (CharacterAbilityIcons.Num() > 0 && CharacterAbilityIcons.IsValidIndex(index))
+	{
+		UTexture* Icon = CharacterAbilityIcons[index];
+		return Icon;
+	}
+
+	return nullptr;
 }

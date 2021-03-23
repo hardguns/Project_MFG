@@ -23,6 +23,7 @@ class UMFG_GameInstance;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUltimateUpdateSignature, float, CurrentUltimateXP, float, MaxUltimateXP);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUltimateStatusSignature, bool, bIsAvailable);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAbilityChangeSignature, int, AbilityAmountAvailable);
 
 UENUM()
 enum class EMFG_CharacterType : uint8
@@ -154,13 +155,13 @@ protected:
 		float LaserTraceLenght;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
-		float LaserReloadTimeSpeed;
+		float AbilityReloadTimeSpeed;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability", meta = (ClampMin = 0.0, UIMin = 0.0))
-		float LaserShotsLeft;
+		float AbilityAmountLeft;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability", meta = (ClampMin = 0.0, UIMin = 0.0))
-		float MaximumLaserShots;
+		float MaximumAbilityAmount;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability")
 		TSubclassOf<AMFG_LaserProjectile> LaserProjectileClass;
@@ -246,6 +247,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Effects")
 		UParticleSystemComponent* UltimateWeaponEffectComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
+		TArray<UTexture*> CharacterAbilityIcons;
+
 	UAnimInstance* MyAnimInstance;
 
 	AMFG_GameMode* GameModeReference;
@@ -268,6 +272,9 @@ public:
 	UPROPERTY(BlueprintAssignable)
 		FOnUltimateStatusSignature OnUltimateStatusDelegate;
 
+	UPROPERTY(BlueprintAssignable)
+		FOnAbilityChangeSignature OnAbilityChangeDelegate;
+		
 public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Action")
@@ -409,6 +416,14 @@ public:
 	AMFG_Shield* GetShieldActor() { return CurrentShield; };
 
 	UMFG_HealthComponent* GetHealthComponent(){ return HealthComponent; };
+
+	UTexture* GetAbilityIcon(int index);
+
+	int GetAbilityAmountAvailable(){ return AbilityAmountLeft; };
+
+	float GetAbilityReloadTime(){ return AbilityReloadTimeSpeed; };
+
+	int GetAbilityMaximumAmount(){ return MaximumAbilityAmount; };
 
 protected:
 
