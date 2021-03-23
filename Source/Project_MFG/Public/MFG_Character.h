@@ -23,13 +23,36 @@ class UMFG_GameInstance;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUltimateUpdateSignature, float, CurrentUltimateXP, float, MaxUltimateXP);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUltimateStatusSignature, bool, bIsAvailable);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAbilityChangeSignature, int, AbilityAmountAvailable);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAbilityChangeSignature, int, AbilityAmountAvailable, int, ReceivedAbilityIndex);
 
 UENUM()
 enum class EMFG_CharacterType : uint8
 {
 	CharacterType_Player		UMETA(DisplayName = "Player"),
 	CharacterType_Enemy			UMETA(DisplayName = "Enemy")
+};
+
+USTRUCT(BlueprintType)
+struct FAbility
+{
+	GENERATED_USTRUCT_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		FName AbilityName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		int MaximumAbilityUseAmount;
+
+	UPROPERTY(BlueprintReadOnly)
+		int CurrentAbilityUseAmount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		float AbilityCooldown;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		UTexture* AbilityIcon;
 };
 
 UCLASS()
@@ -248,7 +271,7 @@ protected:
 		UParticleSystemComponent* UltimateWeaponEffectComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
-		TArray<UTexture*> CharacterAbilityIcons;
+		TArray<FAbility> CharacterAbilities;
 
 	UAnimInstance* MyAnimInstance;
 
@@ -262,7 +285,11 @@ protected:
 
 	FTimerHandle TimerHandle_BeginUltimateBehavior;
 
-	FTimerHandle TimerHandle_ReloadAbilityShots;
+	FTimerHandle TimerHandle_ReloadAbility1;
+
+	FTimerHandle TimerHandle_ReloadAbility2;
+
+	FTimerDelegate TimerDelegate;
 
 public:
 
@@ -349,7 +376,10 @@ protected:
 
 	void GoToMainMenu();
 
-	void AbilityReload();
+	UFUNCTION()
+	void AbilityReload(int index);
+
+	void SetInitialAbilitiesValues();
 
 	UFUNCTION()
 	void MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -359,6 +389,7 @@ protected:
 
 	UFUNCTION()
 	void OnBurningStateChange(UMFG_EffectsComponent* CurrentEffectsComponent, AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
+
 
 public:
 	// Called every frame
@@ -417,13 +448,7 @@ public:
 
 	UMFG_HealthComponent* GetHealthComponent(){ return HealthComponent; };
 
-	UTexture* GetAbilityIcon(int index);
-
-	int GetAbilityAmountAvailable(){ return AbilityAmountLeft; };
-
-	float GetAbilityReloadTime(){ return AbilityReloadTimeSpeed; };
-
-	int GetAbilityMaximumAmount(){ return MaximumAbilityAmount; };
+	TArray<FAbility> GetCharacterAbilities() { return CharacterAbilities; };
 
 protected:
 

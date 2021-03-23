@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "MFG_Character.h"
 #include "MFG_HUDAbility.generated.h"
 
 /**
@@ -26,19 +27,22 @@ protected:
 		float AbilityCurrentCoolDown;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Setup")
-		float ReloadingBarTime;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Setup")
-		int AbilityAvailable;
+		float ReloadingBarSpeed;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Setup")
 		int MaxAbilityAmount;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Setup")
+		int CurrentAbilityAmount;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup")
 		int AbilityIndex;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Setup")
 		UTexture* AbilityIcon;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Setup")
+		TArray<FAbility> CharacterAbilities;
 
 	FTimerHandle TimerHandle_ReloadAbility;
 
@@ -48,7 +52,7 @@ public:
 	void InitializeWidget();
 
 	UFUNCTION()
-	void UpdateAbilityState(int AbilityAmountAvailable); 
+	void UpdateAbilityState(int AbilityAmountAvailable, int ReceivedAbilityIndex);
 		
 	void ReloadBar();
 	

@@ -14,34 +14,40 @@ void UMFG_HUDAbility::InitializeWidget()
 		if (IsValid(PlayerCharacter))
 		{
 			PlayerCharacter->OnAbilityChangeDelegate.AddDynamic(this, &UMFG_HUDAbility::UpdateAbilityState);
-			AbilityAvailable = PlayerCharacter->GetAbilityAmountAvailable();
-			AbilityTotalCoolDown = PlayerCharacter->GetAbilityReloadTime();
-			MaxAbilityAmount = PlayerCharacter->GetAbilityMaximumAmount();
-
-			AbilityIcon = PlayerCharacter->GetAbilityIcon(AbilityIndex);
+			CharacterAbilities = PlayerCharacter->GetCharacterAbilities();
+			if (CharacterAbilities.IsValidIndex(AbilityIndex))
+			{
+				MaxAbilityAmount = CharacterAbilities[AbilityIndex].MaximumAbilityUseAmount;
+				CurrentAbilityAmount = MaxAbilityAmount;
+				AbilityTotalCoolDown = CharacterAbilities[AbilityIndex].AbilityCooldown;
+				AbilityIcon = CharacterAbilities[AbilityIndex].AbilityIcon;
+			}
 		}
 	}
 
-	ReloadingBarTime = 0.1f;
-	AbilityPercentage = 1.0f;
+	ReloadingBarSpeed = 0.1f;
+	AbilityPercentage = 0;
 }
 
-void UMFG_HUDAbility::UpdateAbilityState(int AbilityAmountAvailable)
+void UMFG_HUDAbility::UpdateAbilityState(int AbilityAmountAvailable, int ReceivedAbilityIndex)
 {
-	AbilityAvailable = AbilityAmountAvailable;
-	if (AbilityAmountAvailable < MaxAbilityAmount)
+	if (AbilityIndex == ReceivedAbilityIndex)
 	{
-		AbilityCurrentCoolDown = 0;
+		CurrentAbilityAmount = AbilityAmountAvailable;
+		if (CurrentAbilityAmount < MaxAbilityAmount)
+		{
+			AbilityCurrentCoolDown = AbilityTotalCoolDown;
 
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ReloadAbility, this, &UMFG_HUDAbility::ReloadBar, ReloadingBarTime, true);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle_ReloadAbility, this, &UMFG_HUDAbility::ReloadBar, ReloadingBarSpeed, true);
+		}
 	}
 }
 
 void UMFG_HUDAbility::ReloadBar()
 {
-	if (AbilityCurrentCoolDown <= AbilityTotalCoolDown)
+	if (AbilityCurrentCoolDown >= 0)
 	{
-		AbilityCurrentCoolDown += ReloadingBarTime;
+		AbilityCurrentCoolDown -= ReloadingBarSpeed;
 		AbilityPercentage = AbilityCurrentCoolDown / AbilityTotalCoolDown;
 	}
 	else

@@ -95,11 +95,8 @@ AMFG_Character::AMFG_Character()
 
 	bCanUseAbility = true;
 	bIsUsingAbility = false;
-	AbilityAmountLeft = 3.0f;
 	LaserTraceLenght = 8000.0f;
 	AbilitySocketName = "Muzzle_05";
-	AbilityReloadTimeSpeed = 3.0f;
-	MaximumAbilityAmount = 3.0f;
 
 	InteractiveObject = NULL;
 
@@ -127,6 +124,7 @@ void AMFG_Character::BeginPlay()
 {
 	Super::BeginPlay();
 	InitializeReferences();
+	SetInitialAbilitiesValues();
 	CreateInitialWeapon();
 	MeleeDetectorComponent->OnComponentBeginOverlap.AddDynamic(this, &AMFG_Character::MakeMeleeDamage);
 
@@ -193,11 +191,21 @@ void AMFG_Character::RollStart()
 
 void AMFG_Character::BagImpulse()
 {
-	if (!bIsUsingBag && !GetMovementComponent()->IsFalling())
+	if (!bIsUsingBag && !GetMovementComponent()->IsFalling() && CharacterAbilities.IsValidIndex(0))
 	{
-		bIsUsingBag = true;
-		FVector currentPosition = GetCurrentPosition();
-		Super::LaunchCharacter(currentPosition * DashForce, true, true);
+		if (CharacterAbilities[0].CurrentAbilityUseAmount > 0)
+		{
+			bIsUsingBag = true;
+			FVector currentPosition = GetCurrentPosition();
+			Super::LaunchCharacter(currentPosition * DashForce, true, true);
+
+			CharacterAbilities[0].CurrentAbilityUseAmount--;
+
+			TimerDelegate.BindUFunction(this, FName("AbilityReload"), 0);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle_ReloadAbility1, TimerDelegate, CharacterAbilities[0].AbilityCooldown, true);
+
+			OnAbilityChangeDelegate.Broadcast(CharacterAbilities[0].CurrentAbilityUseAmount, 0);
+		}
 	}
 }
 
@@ -211,7 +219,7 @@ void AMFG_Character::Run()
 		bIsCrouching = false;
 	}
 
-	if (bIsShooting) 
+	if (bIsShooting)
 	{
 		StopWeaponAction();
 	}
@@ -420,20 +428,24 @@ void AMFG_Character::StopMelee()
 
 void AMFG_Character::StartAbility()
 {
-	if (AbilityAmountLeft > 0 && bCanUseAbility && !bIsUsingAbility)
+	if (bCanUseAbility && !bIsUsingAbility && CharacterAbilities.IsValidIndex(1))
 	{
-		SetAbilityState(true);
-		
-		if (IsValid(MyAnimInstance) && IsValid(AbilityMontage))
+		if (CharacterAbilities[1].CurrentAbilityUseAmount > 0)
 		{
-			MyAnimInstance->Montage_Play(AbilityMontage);
+			SetAbilityState(true);
+
+			if (IsValid(MyAnimInstance) && IsValid(AbilityMontage))
+			{
+				MyAnimInstance->Montage_Play(AbilityMontage);
+			}
+
+			CharacterAbilities[1].CurrentAbilityUseAmount--;
+
+			OnAbilityChangeDelegate.Broadcast(CharacterAbilities[1].CurrentAbilityUseAmount, 1);
+
+			TimerDelegate.BindUFunction(this, FName("AbilityReload"), 1);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle_ReloadAbility2, TimerDelegate, CharacterAbilities[1].AbilityCooldown, true);
 		}
-
-		AbilityAmountLeft--;
-
-		OnAbilityChangeDelegate.Broadcast(AbilityAmountLeft);
-
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle_ReloadAbilityShots, this, &AMFG_Character::AbilityReload, AbilityReloadTimeSpeed, true);
 
 		BP_StartAbility();
 	}
@@ -536,20 +548,41 @@ void AMFG_Character::SetAbilityBehavior()
 	}
 }
 
-void AMFG_Character::AbilityReload()
+void AMFG_Character::AbilityReload(int index)
 {
-	if (AbilityAmountLeft < MaximumAbilityAmount)
+	if (CharacterAbilities.IsValidIndex(index))
 	{
-		AbilityAmountLeft++;
+		if (CharacterAbilities[index].CurrentAbilityUseAmount < CharacterAbilities[index].MaximumAbilityUseAmount)
+		{
+			CharacterAbilities[index].CurrentAbilityUseAmount++;
+			OnAbilityChangeDelegate.Broadcast(CharacterAbilities[index].CurrentAbilityUseAmount, index);
+		}
+		else
+		{
+			switch (index)
+			{
+			case 0:
+				GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ReloadAbility1);
+				break;
+			case 1:
+				GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ReloadAbility2);
+				break;
+			default:
+				break;
+			}
 
-		OnAbilityChangeDelegate.Broadcast(AbilityAmountLeft);
-	}
-	else
-	{
-		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ReloadAbilityShots);
+		}
 	}
 
 	BP_AbilityReload();
+}
+
+void AMFG_Character::SetInitialAbilitiesValues()
+{
+	for (int i = 0; i < CharacterAbilities.Num(); i++)
+	{
+		CharacterAbilities[i].CurrentAbilityUseAmount = CharacterAbilities[i].MaximumAbilityUseAmount;
+	}
 }
 
 void AMFG_Character::MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -581,7 +614,7 @@ void AMFG_Character::MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, A
 				}
 			}
 		}
-		else 
+		else
 		{
 			if (bIsUsingUltimate)
 			{
@@ -809,15 +842,4 @@ void AMFG_Character::BeginUltimateBehavior()
 void AMFG_Character::SetShield(AMFG_Shield* NewShield)
 {
 	CurrentShield = NewShield;
-}
-
-UTexture* AMFG_Character::GetAbilityIcon(int index)
-{
-	if (CharacterAbilityIcons.Num() > 0 && CharacterAbilityIcons.IsValidIndex(index))
-	{
-		UTexture* Icon = CharacterAbilityIcons[index];
-		return Icon;
-	}
-
-	return nullptr;
 }
