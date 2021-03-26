@@ -4,9 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "MFG_Character.h"
 #include "MFG_HUDAbility.generated.h"
 
+class AMFG_Ability;
+class UProgressBar;
 /**
  * 
  */
@@ -16,6 +17,9 @@ class PROJECT_MFG_API UMFG_HUDAbility : public UUserWidget
 	GENERATED_BODY()
 
 protected:
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Setup")
+		float StartDelayDuration;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Setup")
 		float AbilityPercentage;
@@ -39,15 +43,20 @@ protected:
 		int AbilityIndex;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Setup")
-		UTexture* AbilityIcon;
+		UTexture2D* AbilityIcon;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Setup")
-		TArray<FAbility> CharacterAbilities;
+		TArray<AMFG_Ability*> CharacterAbilities;
 
 	FTimerHandle TimerHandle_ReloadAbility;
 
-public:
+	FTimerHandle TimerHandle_LoadWidget;
 
+public:
+	
+	UFUNCTION(BlueprintCallable)
+	void Start();
+	
 	UFUNCTION(BlueprintCallable)
 	void InitializeWidget();
 

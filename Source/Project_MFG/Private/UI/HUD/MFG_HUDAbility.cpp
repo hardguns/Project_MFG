@@ -3,7 +3,13 @@
 
 #include "UI/HUD/MFG_HUDAbility.h"
 #include "MFG_Character.h"
+#include "Abilities/MFG_Ability.h"
 #include "Kismet/GameplayStatics.h"
+
+void UMFG_HUDAbility::Start()
+{
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_LoadWidget, this, &UMFG_HUDAbility::InitializeWidget, StartDelayDuration, false);
+}
 
 void UMFG_HUDAbility::InitializeWidget()
 {
@@ -17,10 +23,14 @@ void UMFG_HUDAbility::InitializeWidget()
 			CharacterAbilities = PlayerCharacter->GetCharacterAbilities();
 			if (CharacterAbilities.IsValidIndex(AbilityIndex))
 			{
-				MaxAbilityAmount = CharacterAbilities[AbilityIndex].MaximumAbilityUseAmount;
-				CurrentAbilityAmount = MaxAbilityAmount;
-				AbilityTotalCoolDown = CharacterAbilities[AbilityIndex].AbilityCooldown;
-				AbilityIcon = CharacterAbilities[AbilityIndex].AbilityIcon;
+				if (IsValid(CharacterAbilities[AbilityIndex]))
+				{
+					FAbility AbilityDetails = CharacterAbilities[AbilityIndex]->GetAbilityDetails();
+					MaxAbilityAmount = AbilityDetails.MaximumAbilityUseAmount;
+					CurrentAbilityAmount = MaxAbilityAmount;
+					AbilityTotalCoolDown = AbilityDetails.AbilityCooldown;
+					AbilityIcon = AbilityDetails.AbilityIcon;
+				}
 			}
 		}
 	}

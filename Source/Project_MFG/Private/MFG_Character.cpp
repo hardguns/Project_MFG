@@ -26,6 +26,7 @@
 #include "Weapons/MFG_LaserProjectile.h"
 #include "Objects/MFG_Shield.h"
 #include "Core/MFG_GameInstance.h" 
+#include "Abilities/MFG_Ability.h"
 
 // Sets default values
 AMFG_Character::AMFG_Character()
@@ -95,8 +96,6 @@ AMFG_Character::AMFG_Character()
 
 	bCanUseAbility = true;
 	bIsUsingAbility = false;
-	LaserTraceLenght = 8000.0f;
-	AbilitySocketName = "Muzzle_05";
 
 	InteractiveObject = NULL;
 
@@ -124,8 +123,9 @@ void AMFG_Character::BeginPlay()
 {
 	Super::BeginPlay();
 	InitializeReferences();
-	SetInitialAbilitiesValues();
 	CreateInitialWeapon();
+	CreateInitialAbilities();
+
 	MeleeDetectorComponent->OnComponentBeginOverlap.AddDynamic(this, &AMFG_Character::MakeMeleeDamage);
 
 	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &AMFG_Character::OnHealthChange);
@@ -189,22 +189,13 @@ void AMFG_Character::RollStart()
 //	bIsRolling = false;
 //}
 
-void AMFG_Character::BagImpulse()
+void AMFG_Character::UsePrimaryAbility()
 {
-	if (!bIsUsingBag && !GetMovementComponent()->IsFalling() && CharacterAbilities.IsValidIndex(0))
+	if (!bIsUsingBag && !GetMovementComponent()->IsFalling() && CharacterAbilitiesArr.IsValidIndex(0))
 	{
-		if (CharacterAbilities[0].CurrentAbilityUseAmount > 0)
+		if (IsValid(CharacterAbilitiesArr[0]))
 		{
-			bIsUsingBag = true;
-			FVector currentPosition = GetCurrentPosition();
-			Super::LaunchCharacter(currentPosition * DashForce, true, true);
-
-			CharacterAbilities[0].CurrentAbilityUseAmount--;
-
-			TimerDelegate.BindUFunction(this, FName("AbilityReload"), 0);
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle_ReloadAbility1, TimerDelegate, CharacterAbilities[0].AbilityCooldown, true);
-
-			OnAbilityChangeDelegate.Broadcast(CharacterAbilities[0].CurrentAbilityUseAmount, 0);
+			CharacterAbilitiesArr[0]->CastAbility();
 		}
 	}
 }
@@ -298,6 +289,21 @@ void AMFG_Character::CreateInitialWeapon()
 			WeaponInitialDamage = CurrentWeapon->GetCurrentDamage();
 			CurrentWeapon->SetCharacterOwner(this);
 			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		}
+	}
+}
+
+void AMFG_Character::CreateInitialAbilities()
+{
+	for (TSubclassOf<AMFG_Ability> AbilityClass : CharacterAbilitiesClasses)
+	{
+		if (IsValid(AbilityClass))
+		{
+			AMFG_Ability* CurrentAbility = GetWorld()->SpawnActor<AMFG_Ability>(AbilityClass, GetActorLocation(), GetActorRotation());
+			if (IsValid(CurrentAbility))
+			{
+				CharacterAbilitiesArr.Add(CurrentAbility);
+			}
 		}
 	}
 }
@@ -428,23 +434,12 @@ void AMFG_Character::StopMelee()
 
 void AMFG_Character::StartAbility()
 {
-	if (bCanUseAbility && !bIsUsingAbility && CharacterAbilities.IsValidIndex(1))
+	if (bCanUseAbility && !bIsUsingAbility && CharacterAbilitiesArr.IsValidIndex(1))
 	{
-		if (CharacterAbilities[1].CurrentAbilityUseAmount > 0)
+		SetAbilityState(true);
+		if (IsValid(CharacterAbilitiesArr[1]))
 		{
-			SetAbilityState(true);
-
-			if (IsValid(MyAnimInstance) && IsValid(AbilityMontage))
-			{
-				MyAnimInstance->Montage_Play(AbilityMontage);
-			}
-
-			CharacterAbilities[1].CurrentAbilityUseAmount--;
-
-			OnAbilityChangeDelegate.Broadcast(CharacterAbilities[1].CurrentAbilityUseAmount, 1);
-
-			TimerDelegate.BindUFunction(this, FName("AbilityReload"), 1);
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle_ReloadAbility2, TimerDelegate, CharacterAbilities[1].AbilityCooldown, true);
+			CharacterAbilitiesArr[1]->CastAbility();
 		}
 
 		BP_StartAbility();
@@ -508,80 +503,15 @@ void AMFG_Character::GoToMainMenu()
 
 void AMFG_Character::SetAbilityBehavior()
 {
-	AActor* CurrentCharacterActor = GetOwner();
-
-	if (IsValid(CurrentCharacterActor))
+	if (CharacterAbilitiesArr.IsValidIndex(1))
 	{
-		FVector EyeLocation;
-		FRotator EyeRotation;
-
-		CurrentCharacterActor->GetActorEyesViewPoint(EyeLocation, EyeRotation);
-
-		FVector ShotDirection = EyeRotation.Vector();
-		FVector TraceEnd = EyeLocation + (ShotDirection * LaserTraceLenght);
-
-		FCollisionQueryParams QueryParams;
-		QueryParams.AddIgnoredActor(this);
-		QueryParams.bTraceComplex = true;
-
-		FVector TraceEndPoint = TraceEnd;
-
-		FHitResult HitResult;
-		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, EyeLocation, TraceEnd, COLLISION_WEAPON, QueryParams);
-
-		if (bHit)
+		if (IsValid(CharacterAbilitiesArr[1]))
 		{
-			TraceEndPoint = HitResult.ImpactPoint;
-
-			if (IsValid(AbilityEffect))
-			{
-				FVector LaserSocketLocation = GetMesh()->GetSocketLocation(AbilitySocketName);
-				FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(LaserSocketLocation, TraceEndPoint);
-
-				AMFG_LaserProjectile* CurrentProjectile = GetWorld()->SpawnActor<AMFG_LaserProjectile>(LaserProjectileClass, LaserSocketLocation, NewRotation);
-				if (bIsUsingUltimate)
-				{
-					CurrentProjectile->SetNewDamageValue(CurrentProjectile->GetLaserProjectileDamage() * UltimateWeaponDamageMultiplier);
-				}
-			}
+			//SetAbilityState(true);
+			CharacterAbilitiesArr[1]->SetAbilityBehavior();
 		}
-	}
-}
 
-void AMFG_Character::AbilityReload(int index)
-{
-	if (CharacterAbilities.IsValidIndex(index))
-	{
-		if (CharacterAbilities[index].CurrentAbilityUseAmount < CharacterAbilities[index].MaximumAbilityUseAmount)
-		{
-			CharacterAbilities[index].CurrentAbilityUseAmount++;
-			OnAbilityChangeDelegate.Broadcast(CharacterAbilities[index].CurrentAbilityUseAmount, index);
-		}
-		else
-		{
-			switch (index)
-			{
-			case 0:
-				GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ReloadAbility1);
-				break;
-			case 1:
-				GetWorld()->GetTimerManager().ClearTimer(TimerHandle_ReloadAbility2);
-				break;
-			default:
-				break;
-			}
-
-		}
-	}
-
-	BP_AbilityReload();
-}
-
-void AMFG_Character::SetInitialAbilitiesValues()
-{
-	for (int i = 0; i < CharacterAbilities.Num(); i++)
-	{
-		CharacterAbilities[i].CurrentAbilityUseAmount = CharacterAbilities[i].MaximumAbilityUseAmount;
+		BP_StartAbility();
 	}
 }
 
@@ -700,7 +630,7 @@ void AMFG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &AMFG_Character::Run);
 
-	PlayerInputComponent->BindAction("Impulse", IE_Pressed, this, &AMFG_Character::BagImpulse);
+	PlayerInputComponent->BindAction("PrimaryAbility", IE_Pressed, this, &AMFG_Character::UsePrimaryAbility);
 
 	PlayerInputComponent->BindAction("Action", IE_Pressed, this, &AMFG_Character::DoAction);
 
@@ -712,8 +642,8 @@ void AMFG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AMFG_Character::StartMelee);
 	PlayerInputComponent->BindAction("Melee", IE_Released, this, &AMFG_Character::StopMelee);
 
-	PlayerInputComponent->BindAction("InitialAbility", IE_Pressed, this, &AMFG_Character::StartAbility);
-	PlayerInputComponent->BindAction("InitialAbility", IE_Released, this, &AMFG_Character::StopAbility);
+	PlayerInputComponent->BindAction("AdditionalAbility", IE_Pressed, this, &AMFG_Character::StartAbility);
+	PlayerInputComponent->BindAction("AdditionalAbility", IE_Released, this, &AMFG_Character::StopAbility);
 
 	PlayerInputComponent->BindAction("Ultimate", IE_Pressed, this, &AMFG_Character::StartUltimate);
 	PlayerInputComponent->BindAction("Ultimate", IE_Released, this, &AMFG_Character::StopUltimate);
@@ -739,6 +669,11 @@ bool AMFG_Character::TryAddHealth(float HealthToAdd)
 bool AMFG_Character::HasKey(FName KeyTag)
 {
 	return DoorKeys.Contains(KeyTag);
+}
+
+void AMFG_Character::SetIsUsingBag(bool NewState)
+{
+	bIsUsingBag = NewState;
 }
 
 void AMFG_Character::SetMeleeDetectorCollision(ECollisionEnabled::Type NewCollisionState)

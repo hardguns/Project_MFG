@@ -20,6 +20,7 @@ class UParticleSystem;
 class AMFG_LaserProjectile;
 class AMFG_Shield;
 class UMFG_GameInstance;
+class AMFG_Ability;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUltimateUpdateSignature, float, CurrentUltimateXP, float, MaxUltimateXP);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUltimateStatusSignature, bool, bIsAvailable);
@@ -30,29 +31,6 @@ enum class EMFG_CharacterType : uint8
 {
 	CharacterType_Player		UMETA(DisplayName = "Player"),
 	CharacterType_Enemy			UMETA(DisplayName = "Enemy")
-};
-
-USTRUCT(BlueprintType)
-struct FAbility
-{
-	GENERATED_USTRUCT_BODY()
-
-public:
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		FName AbilityName;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		int MaximumAbilityUseAmount;
-
-	UPROPERTY(BlueprintReadOnly)
-		int CurrentAbilityUseAmount;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		float AbilityCooldown;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-		UTexture* AbilityIcon;
 };
 
 UCLASS()
@@ -174,21 +152,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate|Abilities", meta = (ClampMin = 0.0, UIMin = 0.0))
 		float UltimateShotFrequency;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
-		float LaserTraceLenght;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
-		float AbilityReloadTimeSpeed;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability", meta = (ClampMin = 0.0, UIMin = 0.0))
-		float AbilityAmountLeft;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability", meta = (ClampMin = 0.0, UIMin = 0.0))
-		float MaximumAbilityAmount;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability")
-		TSubclassOf<AMFG_LaserProjectile> LaserProjectileClass;
-
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
 		FName FPSCameraSocketName;
 
@@ -197,12 +160,6 @@ protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 		FName EffectsSocketName;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Ability")
-		FName AbilitySocketName;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
-		FName TraceParamName; 
 		
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Levels")
 		FName MainMenuMapName;
@@ -250,16 +207,10 @@ protected:
 		UAnimMontage* MeleeMontage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation")
-		UAnimMontage* AbilityMontage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation")
 		UAnimMontage* UltimateMontage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 		UParticleSystem* BurningEffect;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
-		UParticleSystem* AbilityEffect;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 		UParticleSystemComponent* BurningEffectComponent;
@@ -271,7 +222,13 @@ protected:
 		UParticleSystemComponent* UltimateWeaponEffectComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
-		TArray<FAbility> CharacterAbilities;
+		TArray<TSubclassOf<AMFG_Ability>> CharacterAbilitiesClasses;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Ability")
+		TArray<AMFG_Ability*> CharacterAbilitiesArr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
+		UTexture2D* CharacterHUDImage;
 
 	UAnimInstance* MyAnimInstance;
 
@@ -336,7 +293,7 @@ protected:
 
 	void RollStart();
 
-	void BagImpulse();
+	void UsePrimaryAbility();
 
 	UFUNCTION(BlueprintCallable)
 	void Run();
@@ -352,6 +309,8 @@ protected:
 	virtual void StopJumping();
 
 	void CreateInitialWeapon();
+
+	void CreateInitialAbilities();
 
 	UFUNCTION(BlueprintCallable)
 	void StartWeaponAction();
@@ -375,11 +334,6 @@ protected:
 	void StopUltimate();
 
 	void GoToMainMenu();
-
-	UFUNCTION()
-	void AbilityReload(int index);
-
-	void SetInitialAbilitiesValues();
 
 	UFUNCTION()
 	void MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -410,6 +364,14 @@ public:
 
 	bool HasKey(FName KeyTag);
 
+	bool GetIsUsingBag(){ return bIsUsingBag; };
+
+	float GetUltimateWeaponDamageMultiplier(){ return UltimateWeaponDamageMultiplier; };
+
+	UTexture2D* GetCharacterHUDImage(){ return CharacterHUDImage; };
+
+	void SetIsUsingBag(bool NewState);
+
 	void SetMeleeDetectorCollision(ECollisionEnabled::Type NewCollisionState);
 
 	void SetMeleeState(bool NewState);
@@ -439,6 +401,8 @@ public:
 
 	void BeginUltimateBehavior();
 
+	UAnimInstance* GetPlayerAnimInstance() { return MyAnimInstance; };
+
 	UFUNCTION(BlueprintCallable)
 	EMFG_CharacterType GetCharacterType() { return CharacterType; };
 
@@ -448,7 +412,7 @@ public:
 
 	UMFG_HealthComponent* GetHealthComponent(){ return HealthComponent; };
 
-	TArray<FAbility> GetCharacterAbilities() { return CharacterAbilities; };
+	TArray<AMFG_Ability*> GetCharacterAbilities() { return CharacterAbilitiesArr; };
 
 protected:
 
@@ -466,9 +430,6 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 		void BP_StopAbility();
-
-	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-		void BP_AbilityReload();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void BP_UpdateUltimateDuration(float Value);
