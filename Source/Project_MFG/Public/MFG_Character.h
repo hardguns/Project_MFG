@@ -372,6 +372,8 @@ public:
 
 	float GetUltimateWeaponDamageMultiplier(){ return UltimateWeaponDamageMultiplier; };
 
+	UMFG_HUD* GetCharacterMainHUD(){ return CharacterMainHUD; };
+
 	UTexture2D* GetCharacterHUDImage(){ return CharacterHUDImage; };
 
 	void SetIsUsingBag(bool NewState);
