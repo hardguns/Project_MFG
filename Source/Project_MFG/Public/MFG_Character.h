@@ -21,6 +21,7 @@ class AMFG_LaserProjectile;
 class AMFG_Shield;
 class UMFG_GameInstance;
 class AMFG_Ability;
+class UMFG_HUD;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUltimateUpdateSignature, float, CurrentUltimateXP, float, MaxUltimateXP);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUltimateStatusSignature, bool, bIsAvailable);
@@ -202,6 +203,9 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, Category = "Shield")
 		AMFG_Shield* CurrentShield;
+
+	UPROPERTY(BlueprintReadWrite, Category = "HUD")
+		UMFG_HUD* CharacterMainHUD;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation")
 		UAnimMontage* MeleeMontage;

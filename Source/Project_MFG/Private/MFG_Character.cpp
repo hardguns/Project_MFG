@@ -27,6 +27,7 @@
 #include "Objects/MFG_Shield.h"
 #include "Core/MFG_GameInstance.h" 
 #include "Abilities/MFG_Ability.h"
+#include "UI/HUD/MFG_HUD.h"
 
 // Sets default values
 AMFG_Character::AMFG_Character()
