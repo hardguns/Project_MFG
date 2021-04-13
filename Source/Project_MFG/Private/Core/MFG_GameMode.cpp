@@ -7,6 +7,8 @@
 #include "GameFramework/PawnMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "MFG_SpectatingCamera.h"
+#include "Sound/SoundCue.h"
+#include "Enemy/MFG_Enemy.h"
 
 AMFG_GameMode::AMFG_GameMode()
 {
@@ -18,6 +20,24 @@ void AMFG_GameMode::BeginPlay()
 	Super::BeginPlay();
 
 	SetupSpectatingCameras();
+
+	TArray<AActor*> EnemyActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AMFG_Enemy::StaticClass(), EnemyActors);
+
+	for (AActor* EnemyActor : EnemyActors)
+	{
+		if (!IsValid(EnemyActor))
+		{
+			continue;
+		}
+
+		AMFG_Enemy* NewEnemy = Cast<AMFG_Enemy>(EnemyActor);
+
+		if (IsValid(NewEnemy))
+		{
+			LevelEnemies.AddUnique(NewEnemy);
+		}
+	}
 
 }
 
@@ -68,6 +88,16 @@ void AMFG_GameMode::MoveCameraToSpectatingPoint(AMFG_Character* Character, AMFG_
 	}
 }
 
+void AMFG_GameMode::PlayMusic(USoundCue* MusicCue)
+{
+	if (!IsValid(MusicCue))
+	{
+		return;
+	}
+
+	UGameplayStatics::PlaySound2D(GetWorld(), MusicCue);
+}
+
 void AMFG_GameMode::AddKeyToCharacter(AMFG_Character* KeyOwner, FName KeyTag)
 {
 	if(IsValid(KeyOwner))
@@ -83,6 +113,8 @@ void AMFG_GameMode::Victory(AMFG_Character* Character)
 
 	MoveCameraToSpectatingPoint(Character, VictoryCamera);
 	OnVictoryDelegate.Broadcast();
+
+	PlayMusic(VictoryMusic);
 
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle_BackToMainMenu, this, &AMFG_GameMode::BackToMainMenu, 3.0f, false);
 	
@@ -108,7 +140,9 @@ void AMFG_GameMode::GameOver(AMFG_Character* Character)
 
 	OnGameOverDelegate.Broadcast();
 
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle_BackToMainMenu, this, &AMFG_GameMode::BackToMainMenu, 3.0f, false);
+	PlayMusic(GameOverMusic);
+
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_BackToMainMenu, this, &AMFG_GameMode::BackToMainMenu, 8.0f, false);
 
 	BP_GameOver(Character);
 }
@@ -116,4 +150,29 @@ void AMFG_GameMode::GameOver(AMFG_Character* Character)
 void AMFG_GameMode::BackToMainMenu()
 {
 	UGameplayStatics::OpenLevel(GetWorld(), MainMenuMapName);
+}
+
+void AMFG_GameMode::CheckAlertMode()
+{
+	bool bEnemyInAlertMode = false;
+
+	for (AMFG_Enemy* EnemyOnLevel : LevelEnemies)
+	{
+		if (!IsValid(EnemyOnLevel))
+		{
+			continue;
+		}
+
+		if (EnemyOnLevel->IsAlert())
+		{
+			bEnemyInAlertMode = true;
+			break;
+		}
+	}
+
+	if (bIsAlertMode != bEnemyInAlertMode)
+	{
+		bIsAlertMode = bEnemyInAlertMode;
+		OnAlertModeChangeDelegate.Broadcast(bIsAlertMode);
+	}
 }

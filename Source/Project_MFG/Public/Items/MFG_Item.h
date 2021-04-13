@@ -9,6 +9,7 @@
 class USphereComponent;
 class AMFG_Character;
 class AMFG_GameMode;
+class USoundCue;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_Item : public AActor
@@ -23,7 +24,10 @@ protected:
 protected:
 
 	UPROPERTY(BlueprintReadOnly)
-	AMFG_GameMode* GameModeReference;
+		AMFG_GameMode* GameModeReference;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* PickupSound;
 
 public:
 	// Sets default values for this actor's properties
@@ -37,6 +41,8 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Item")
 	void BP_Pickup(AMFG_Character* PickupCharacter);
+
+	void PlayPickupSound();
 
 public:
 	// Called every frame

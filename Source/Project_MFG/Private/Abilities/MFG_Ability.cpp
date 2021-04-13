@@ -3,6 +3,7 @@
 
 #include "Abilities/MFG_Ability.h"
 #include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 #include "MFG_Character.h"
 
 // Sets default values

@@ -7,6 +7,7 @@
 #include "Weapons/MFG_Projectile.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Sound/SoundCue.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "DrawDebugHelpers.h"
 
@@ -53,6 +54,9 @@ void AMFG_GrenadeLauncher::StartAction()
 
 			DrawDebugLine(GetWorld(), EyeLocation, TraceEndPoint, FColor::White, false, 1.0f, 0.0f, 1.0f);
 			FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(MuzzleSocketLocation, TraceEndPoint);
+
+			PlaySound(ShotSound);
+
 			AMFG_Projectile* CurrentProjectile = GetWorld()->SpawnActor<AMFG_Projectile>(ProjectileClass, MuzzleSocketLocation, NewRotation);
 			CurrentProjectile->SetNewDamageValue(Damage);
 

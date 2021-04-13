@@ -10,6 +10,7 @@
 AMFG_AbilityLaser::AMFG_AbilityLaser()
 {
 	LaserTraceLenght = 8000.0f;
+	LaserReloadCooldown = 3.0f;
 	LaserSocketName = "Muzzle_05";
 }
 
@@ -28,7 +29,7 @@ void AMFG_AbilityLaser::CastAbility()
 	{
 		if (IsValid(PlayerCharacterReference))
 		{
-			//PlayerCharacterReference->SetAbilityState(true);
+			PlayerCharacterReference->SetAbilityState(true);
 
 			UAnimInstance* PlayerAnimInstance = PlayerCharacterReference->GetPlayerAnimInstance();
 			if (IsValid(PlayerAnimInstance) && IsValid(LaserShotMontage))
@@ -38,9 +39,11 @@ void AMFG_AbilityLaser::CastAbility()
 
 			AbilityDetails.CurrentAbilityUseAmount--;
 
-			PlayerCharacterReference->OnAbilityChangeDelegate.Broadcast(AbilityDetails.CurrentAbilityUseAmount, AbilityDetails.AbilityIndex);
+			PlayerCharacterReference->SetAbilityState(false);
 
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle_ReloadAbility, this, &AMFG_AbilityLaser::ReloadAbility, AbilityDetails.AbilityCooldown, true);
+			PlayerCharacterReference->OnAbilityChangeDelegate.Broadcast(AbilityDetails.CurrentAbilityUseAmount, AbilityDetails.AbilityIndex, true);
+
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle_ReloadAbility, this, &AMFG_AbilityLaser::ReloadAbility, LaserReloadCooldown, true);
 		}
 	}
 }
@@ -54,7 +57,7 @@ void AMFG_AbilityLaser::ReloadAbility()
 		AbilityDetails.CurrentAbilityUseAmount++;
 		if (IsValid(PlayerCharacterReference))
 		{
-			PlayerCharacterReference->OnAbilityChangeDelegate.Broadcast(AbilityDetails.CurrentAbilityUseAmount, AbilityDetails.AbilityIndex);
+			PlayerCharacterReference->OnAbilityChangeDelegate.Broadcast(AbilityDetails.CurrentAbilityUseAmount, AbilityDetails.AbilityIndex, false);
 		}
 	}
 	else

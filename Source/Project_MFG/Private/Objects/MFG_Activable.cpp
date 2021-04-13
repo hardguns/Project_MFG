@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/PointLightComponent.h"
+#include "Components/AudioComponent.h"
 #include "MFG_Character.h"
 #include "Objects/MFG_Launch_Pad.h"
 #include "Enemy/MFG_BotSpawner.h"
@@ -23,6 +24,7 @@ AMFG_Activable::AMFG_Activable()
 	PointLight->SetupAttachment(RootComponent);
 
 	ActivableTag = "ActivableA";
+	InteractionParamName = "Activable";
 }
 
 void AMFG_Activable::BeginPlay()
@@ -61,6 +63,17 @@ void AMFG_Activable::StopInteract(AMFG_Character* OtherActor)
 			OverlappedCharacter->InteractiveObject = NULL;
 		}
 	}
+}
+
+void AMFG_Activable::PlayInteractionSound(USoundCue* ActivableSound)
+{
+	Super::PlayInteractionSound(ActivableSound);
+}
+
+void AMFG_Activable::ChangeActivableSound(bool bIsActive)
+{
+	InteractiveAudioComponent->SetBoolParameter(InteractionParamName, bIsActive);
+	PlayInteractionSound(InteractionSound);
 }
 
 void AMFG_Activable::CheckActivable(AMFG_Character* OtherActor)
@@ -102,6 +115,8 @@ void AMFG_Activable::UseActivable()
 	{
 		PointLight->SetLightColor(bSwitchState ? FLinearColor(0.0091f, 0.33f, 0.0f) : FLinearColor(0.49f, 0.0f, 0.0f), true);
 	}
+
+	ChangeActivableSound(bSwitchState);
 
 	for (int i = 0; i < ActivableObjects.Num(); i++)
 	{

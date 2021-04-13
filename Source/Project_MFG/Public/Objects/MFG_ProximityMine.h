@@ -13,6 +13,7 @@ class UMFG_HealthComponent;
 class UParticleSystem;
 class ACharacter;
 class UPointLightComponent;
+class USoundCue;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_ProximityMine : public AActor
@@ -73,6 +74,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
 		TArray<TEnumAsByte<EObjectTypeQuery>> ActorsEnum;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* ProximitySound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* ExplosionSound;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -94,6 +101,8 @@ protected:
 
 	UFUNCTION()
 	void OnHealthChange(UMFG_HealthComponent* CurrentHealthComponent, AActor* DamagedActor, float DamageReceived, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
+
+	void PlayExplosionSound();
 
 public:	
 	// Called every frame

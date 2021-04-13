@@ -39,8 +39,10 @@ void AMFG_Launch_Pad::Interact(AMFG_Character* CharacterToLaunch)
 	Super::Interact(CharacterToLaunch);
 
 	if (bSwitchState) {
+
+		PlayInteractionSound(InteractionSound);
+
 		FVector LaunchDirection = (GetRootComponent()->GetForwardVector() + InitialLaunchDirection);
-		//CharacterToLaunch->UnCrouch();
 		CharacterToLaunch->LaunchCharacter(LaunchDirection * LaunchForce, true, true);
 	}
 }

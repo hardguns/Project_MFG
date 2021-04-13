@@ -22,6 +22,8 @@ void AMFG_HealthBox::Pickup(AMFG_Character* PickupCharacter)
 
 	if (bSuccessfulHeal)
 	{
+		PlayPickupSound();
+
 		Destroy();
 	}
 }

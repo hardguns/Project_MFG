@@ -10,6 +10,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "DrawDebugHelpers.h"
 #include "MFG_Character.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 AMFG_Projectile::AMFG_Projectile()
@@ -75,7 +76,19 @@ void AMFG_Projectile::OnDetonate()
 
 	DrawDebugSphere(GetWorld(), GetActorLocation(), DamageRadius, 10.0f, FColor::Red, false, 1.0f, NULL, 1.0f);
 
+	PlayExplosionSound();
+
 	Destroy();
+}
+
+void AMFG_Projectile::PlayExplosionSound()
+{
+	if (!IsValid(ExplosionSound))
+	{
+		return;
+	}
+
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), ExplosionSound, GetActorLocation());
 }
 
 // Called every frame

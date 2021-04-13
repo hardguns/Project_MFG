@@ -8,9 +8,12 @@
 
 class AMFG_Character;
 class AMFG_SpectatingCamera;
+class USoundCue;
+class AMFG_Enemy;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKeyAddedSignature, FName, KeyTag);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGameStateChange);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAlertModeChangeSignature, bool, bIsAlert);
 
 UCLASS()
 class PROJECT_MFG_API AMFG_GameMode : public AGameModeBase
@@ -18,6 +21,9 @@ class PROJECT_MFG_API AMFG_GameMode : public AGameModeBase
 	GENERATED_BODY()
 
 protected:
+
+	UPROPERTY(BlueprintReadOnly, Category = "Level")
+		bool bIsAlertMode;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spectating Camera")
 		float SpectatingBlendTime;
@@ -30,6 +36,15 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Spectating Camera")
 		AMFG_SpectatingCamera* GameOverCamera;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Music")
+		USoundCue* VictoryMusic;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Music")
+		USoundCue* GameOverMusic;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Level")
+		TArray<AMFG_Enemy*> LevelEnemies;
 
 	FTimerHandle TimerHandle_BackToMainMenu;
 
@@ -45,6 +60,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 		FOnGameStateChange OnGameOverDelegate;
+		
+	UPROPERTY(BlueprintAssignable)
+		FOnAlertModeChangeSignature OnAlertModeChangeDelegate;
 
 protected:
 
@@ -53,6 +71,8 @@ protected:
 	void SetupSpectatingCameras();
 
 	void MoveCameraToSpectatingPoint(AMFG_Character* Character, AMFG_SpectatingCamera* SpectatingCamera);
+
+	void PlayMusic(USoundCue* MusicCue);
 
 public: 
 
@@ -66,6 +86,8 @@ public:
 	void GameOver(AMFG_Character* Character);
 
 	void BackToMainMenu();
+
+	void CheckAlertMode();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void BP_Victory(AMFG_Character* Character);

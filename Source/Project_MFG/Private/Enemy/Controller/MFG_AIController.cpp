@@ -67,6 +67,12 @@ void AMFG_AIController::UpdateSenses(const TArray<AActor*>& UpdatedActors)
 				{
 				case 0:
 					MyBlackboard->SetValueAsBool(CanSeePlayerParameterName, PerceptionInfo.LastSensedStimuli[i].WasSuccessfullySensed());
+
+					if (IsValid(MyEnemy))
+					{
+						MyEnemy->SetAlert(PerceptionInfo.LastSensedStimuli[i].WasSuccessfullySensed());
+					}
+
 					break;
 				case 1:
 					MyBlackboard->SetValueAsBool(InvestigatingParameterName, bReceivingDamage);
@@ -81,4 +87,9 @@ void AMFG_AIController::UpdateSenses(const TArray<AActor*>& UpdatedActors)
 			}
 		}
 	}
+}
+
+void AMFG_AIController::DeactivateAIPerception()
+{
+	AIPerceptionComponent->Deactivate();
 }

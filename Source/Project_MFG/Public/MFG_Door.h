@@ -9,6 +9,8 @@
 class USceneComponent;
 class UStaticMeshComponent;
 class UBoxComponent;
+class UAudioComponent;
+class USoundCue;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_Door : public AActor
@@ -29,6 +31,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		UBoxComponent* KeyZoneColliderComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		UAudioComponent* DoorAudioComponent;
+
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "My Door")
@@ -37,8 +42,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "My Door")
 		bool bIsOpen;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		FName DoorParamName;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "My Door")
 		FName DoorTag;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* DoorBehaviorSound;
 
 public:	
 	// Sets default values for this actor's properties
@@ -59,4 +70,9 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "My Door")
 	void BP_OpenDoor();
+
+	void ChangeDoorSound();
+
+	void PlayDoorSound(USoundCue* DoorSound);
+
 };

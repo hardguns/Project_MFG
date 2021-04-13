@@ -14,6 +14,8 @@ class USphereComponent;
 class AMFG_Item;
 class AMFG_BotSpawner;
 class UMFG_GameInstance;
+class UAudioComponent;
+class USoundCue;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_Bot : public APawn
@@ -30,6 +32,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		UMFG_HealthComponent* HealthComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		UAudioComponent* TimerSoundComponent;
 
 protected:
 
@@ -87,6 +92,9 @@ protected:
 
 	FTimerHandle TimerHandle_SelfDamage;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+	USoundCue* ExplosionSound;
+
 public:
 	// Sets default values for this pawn's properties
 	AMFG_Bot();
@@ -115,6 +123,10 @@ protected:
 	void BP_GiveXP(AActor* DamageCauser);
 
 	bool TrySpawnLoot();
+
+	void PlayTimerSound();
+
+	void PlayExplosionSound();
 
 public:	
 

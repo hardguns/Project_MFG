@@ -43,6 +43,11 @@ void AMFG_ElectricityGen::StopInteract(AMFG_Character* OtherActor)
 	}
 }
 
+void AMFG_ElectricityGen::PlayInteractionSound(USoundCue* ObjectSound)
+{
+	Super::PlayInteractionSound(ObjectSound);
+}
+
 void AMFG_ElectricityGen::HitObject()
 {
 	Super::HitObject();
@@ -55,6 +60,8 @@ void AMFG_ElectricityGen::ActivateElectricity()
 	if (!bSwitchState)
 	{
 		bSwitchState = true;
+
+		PlayInteractionSound(InteractionSound);
 
 		if (IsValid(ActivateEffect))
 		{

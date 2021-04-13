@@ -25,7 +25,7 @@ void AMFG_AbilityJetpack::CastAbility()
 
 			AbilityDetails.CurrentAbilityUseAmount--;
 
-			PlayerCharacterReference->OnAbilityChangeDelegate.Broadcast(AbilityDetails.CurrentAbilityUseAmount, AbilityDetails.AbilityIndex);
+			PlayerCharacterReference->OnAbilityChangeDelegate.Broadcast(AbilityDetails.CurrentAbilityUseAmount, AbilityDetails.AbilityIndex, true);
 
 			GetWorld()->GetTimerManager().SetTimer(TimerHandle_ReloadAbility, this, &AMFG_AbilityJetpack::ReloadAbility, AbilityDetails.AbilityCooldown, true);
 		}
@@ -40,7 +40,7 @@ void AMFG_AbilityJetpack::ReloadAbility()
 		AbilityDetails.CurrentAbilityUseAmount++;
 		if (IsValid(PlayerCharacterReference))
 		{
-			PlayerCharacterReference->OnAbilityChangeDelegate.Broadcast(AbilityDetails.CurrentAbilityUseAmount, AbilityDetails.AbilityIndex);
+			PlayerCharacterReference->OnAbilityChangeDelegate.Broadcast(AbilityDetails.CurrentAbilityUseAmount, AbilityDetails.AbilityIndex, true);
 		}
 	}
 	else

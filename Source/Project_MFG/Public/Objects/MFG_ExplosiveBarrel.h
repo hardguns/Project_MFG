@@ -12,7 +12,7 @@ class UCapsuleComponent;
 class UMFG_HealthComponent;
 class UParticleSystem;
 class USphereComponent;
-
+class USoundCue;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_ExplosiveBarrel : public AActor
@@ -62,6 +62,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
 		TArray<TEnumAsByte<EObjectTypeQuery>> ActorsEnum;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* ExplosionSound;
+
 	FTimerHandle TimerHandle_HandleExplosion;
 
 public:	
@@ -76,6 +79,8 @@ protected:
 	void OnHealthChange(UMFG_HealthComponent* CurrentHealthComponent, AActor* DamagedActor, float DamageReceived, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
 
 	void Explode();
+
+	void PlayExplosionSound();
 
 public:	
 	// Called every frame

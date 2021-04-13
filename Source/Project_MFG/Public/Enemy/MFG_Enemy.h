@@ -11,6 +11,7 @@ class AMFG_Item;
 class AMFG_AIController;
 class UWidgetComponent; 
 class UMFG_EnemyHealthBar;
+class UNiagaraSystem;
 
 /**
  *
@@ -36,6 +37,9 @@ protected:
 		
 	UPROPERTY(BlueprintReadOnly, Category = "UI")
 		bool bIsShowingHealthBar;
+
+	UPROPERTY(BlueprintReadOnly, Category = "AI")
+		bool bIsAlert;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI|Navigation Path")
 		int DirectionIndex;
@@ -93,5 +97,8 @@ public:
 
 	void ShowHealthBar();
 	void HideHealthBar();
+
+	bool IsAlert(){ return bIsAlert; };
+	void SetAlert(bool bValue);
 
 };

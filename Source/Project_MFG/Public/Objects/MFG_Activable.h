@@ -67,4 +67,8 @@ protected:
 
 	virtual void StopInteract(AMFG_Character* OtherActor) override;
 
+	virtual void PlayInteractionSound(USoundCue* ActivableSound) override;
+
+	void ChangeActivableSound(bool bIsActive);
+
 };

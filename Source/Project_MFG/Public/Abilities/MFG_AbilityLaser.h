@@ -23,6 +23,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
 		float LaserTraceLenght;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
+		float LaserReloadCooldown;
+
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Ability")
 		FName LaserSocketName;
 

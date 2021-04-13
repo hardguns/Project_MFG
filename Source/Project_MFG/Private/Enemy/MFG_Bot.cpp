@@ -18,6 +18,8 @@
 #include "Items/MFG_DoorKey.h"
 #include "Enemy/MFG_BotSpawner.h"
 #include "Core/MFG_GameInstance.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 AMFG_Bot::AMFG_Bot()
@@ -37,6 +39,9 @@ AMFG_Bot::AMFG_Bot()
 	SelfDestructionDetectorComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	SelfDestructionDetectorComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	SelfDestructionDetectorComponent->SetSphereRadius(150.0f);
+
+	TimerSoundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("TimerSoundComponent"));
+	TimerSoundComponent->SetupAttachment(RootComponent);
 
 	MinDistanceToTarget = 100.0f;
 	ForceMagnitude = 500.0f;
@@ -147,6 +152,8 @@ void AMFG_Bot::SelfDestruction()
 		MySpawner->NotifyBotDead();
 	}
 
+	PlayExplosionSound();
+
 	Destroy();
 }
 
@@ -167,6 +174,7 @@ void AMFG_Bot::StartCountDown(UPrimitiveComponent* OverlappedComponent, AActor* 
 
 void AMFG_Bot::SelfDamage()
 {
+	PlayTimerSound();
 	UGameplayStatics::ApplyDamage(this, 20.0f, GetInstigatorController(), nullptr, nullptr);
 }
 
@@ -243,6 +251,21 @@ bool AMFG_Bot::TrySpawnLoot()
 	}
 
 	return true;
+}
+
+void AMFG_Bot::PlayTimerSound()
+{
+	TimerSoundComponent->Play();
+}
+
+void AMFG_Bot::PlayExplosionSound()
+{
+	if (!IsValid(ExplosionSound))
+	{
+		return;
+	}
+
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), ExplosionSound, GetActorLocation());
 }
 
 // Called every frame

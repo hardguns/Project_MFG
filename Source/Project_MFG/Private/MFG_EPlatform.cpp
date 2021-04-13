@@ -5,6 +5,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Components/BoxComponent.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 AMFG_EPlatform::AMFG_EPlatform()
@@ -22,6 +24,9 @@ AMFG_EPlatform::AMFG_EPlatform()
 	PlatformColliderComponent->SetupAttachment(CustomRootComponent);
 	PlatformColliderComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	PlatformColliderComponent->SetCollisionResponseToAllChannels(ECR_Block);
+
+	PlatformAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("PlatformAudioComponent"));
+	PlatformAudioComponent->SetupAttachment(RootComponent);
 
 	bIsActive = false;
 	bIsGoingUp = false;
@@ -45,12 +50,28 @@ void AMFG_EPlatform::Tick(float DeltaTime)
 	if (bIsActive)
 	{
 	   Move();
+
+	   PlayPlatformSound();
 	}
 }
 
 void AMFG_EPlatform::SetActiveState(bool NewState)
 {
 	bIsActive = NewState;
+}
+
+void AMFG_EPlatform::PlayPlatformSound()
+{
+	if (!IsValid(PlatformSound))
+	{
+		return;
+	}
+
+	if (!PlatformAudioComponent->IsPlaying())
+	{
+		PlatformAudioComponent->SetSound(PlatformSound);
+		PlatformAudioComponent->Play();
+	}
 }
 
 void AMFG_EPlatform::Move()

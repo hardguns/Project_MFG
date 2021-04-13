@@ -4,6 +4,8 @@
 #include "Weapons/MFG_Weapon.h"
 #include "GameFramework/Character.h"
 #include "Engine/DataTable.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 AMFG_Weapon::AMFG_Weapon()
@@ -46,6 +48,7 @@ void AMFG_Weapon::Tick(float DeltaTime)
 void AMFG_Weapon::StartAction()
 {
 	BP_StartAction();
+	PlaySound(ShotSound);
 }
 
 void AMFG_Weapon::StopAction()
@@ -82,6 +85,23 @@ void AMFG_Weapon::GetRecoilInfo(FName RowName)
 	{
 		CharacterRecoilBehaviourDT->RowStruct = FRecoilBehaviourStruct::StaticStruct();
 		CharacterBehaviorRow = CharacterRecoilBehaviourDT->FindRow<FRecoilBehaviourStruct>(RowName, "");
+	}
+}
+
+void AMFG_Weapon::PlaySound(USoundCue* SoundCue, bool bIs3D, FVector SoundLocation)
+{
+	if (!IsValid(SoundCue))
+	{
+		return;
+	}
+
+	if (bIs3D)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SoundCue, SoundLocation);
+	}
+	else
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), SoundCue);
 	}
 }
 

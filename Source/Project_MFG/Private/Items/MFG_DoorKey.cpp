@@ -24,6 +24,7 @@ void AMFG_DoorKey::Pickup(AMFG_Character* PickupCharacter)
 	{
 		if (IsValid(GameModeReference))
 		{
+			PlayPickupSound();
 			GameModeReference->AddKeyToCharacter(PickupCharacter, KeyTag);
 		}
 

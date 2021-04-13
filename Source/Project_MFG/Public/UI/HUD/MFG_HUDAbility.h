@@ -61,7 +61,7 @@ public:
 	void InitializeWidget();
 
 	UFUNCTION()
-	void UpdateAbilityState(int AbilityAmountAvailable, int ReceivedAbilityIndex);
+	void UpdateAbilityState(int AbilityAmountAvailable, int ReceivedAbilityIndex, bool bShowReloadingBar);
 		
 	void ReloadBar();
 	

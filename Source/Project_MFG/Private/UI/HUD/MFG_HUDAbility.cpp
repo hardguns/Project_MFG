@@ -25,7 +25,7 @@ void UMFG_HUDAbility::InitializeWidget()
 			{
 				if (IsValid(CharacterAbilities[AbilityIndex]))
 				{
-					FAbility AbilityDetails = CharacterAbilities[AbilityIndex]->GetAbilityDetails();
+					FMFG_AbilityStruct AbilityDetails = CharacterAbilities[AbilityIndex]->GetAbilityDetails();
 					MaxAbilityAmount = AbilityDetails.MaximumAbilityUseAmount;
 					CurrentAbilityAmount = MaxAbilityAmount;
 					AbilityTotalCoolDown = AbilityDetails.AbilityCooldown;
@@ -39,7 +39,7 @@ void UMFG_HUDAbility::InitializeWidget()
 	AbilityPercentage = 0;
 }
 
-void UMFG_HUDAbility::UpdateAbilityState(int AbilityAmountAvailable, int ReceivedAbilityIndex)
+void UMFG_HUDAbility::UpdateAbilityState(int AbilityAmountAvailable, int ReceivedAbilityIndex, bool bShowReloadingBar)
 {
 	if (AbilityIndex == ReceivedAbilityIndex)
 	{
@@ -48,7 +48,10 @@ void UMFG_HUDAbility::UpdateAbilityState(int AbilityAmountAvailable, int Receive
 		{
 			AbilityCurrentCoolDown = AbilityTotalCoolDown;
 
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle_ReloadAbility, this, &UMFG_HUDAbility::ReloadBar, ReloadingBarSpeed, true);
+			if (bShowReloadingBar)
+			{
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle_ReloadAbility, this, &UMFG_HUDAbility::ReloadBar, ReloadingBarSpeed, true);
+			}
 		}
 	}
 }

@@ -12,6 +12,10 @@
 #include "Core/MFG_GameInstance.h"
 #include "Components/WidgetComponent.h"
 #include "UI/Enemy/MFG_EnemyHealthBar.h"
+#include "Core/MFG_GameMode.h"
+#include "Niagara/Public/NiagaraComponent.h"
+#include "Niagara/Classes/NiagaraSystem.h"
+#include "Niagara/Public/NiagaraFunctionLibrary.h"
 
 AMFG_Enemy::AMFG_Enemy()
 {
@@ -24,6 +28,7 @@ AMFG_Enemy::AMFG_Enemy()
 
 	WidgetHealthBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetHealthBarComponent"));
 	WidgetHealthBarComponent->SetupAttachment(RootComponent);
+
 }
 
 void AMFG_Enemy::BeginPlay()
@@ -55,7 +60,7 @@ void AMFG_Enemy::GiveXP(AActor* DamageCauser)
 	{
 		PossiblePlayer->GainUltimateXP(XPValue);
 		TrySpawnLoot();
-	}
+	}	
 
 	AMFG_Weapon* PossibleWeapon = Cast<AMFG_Weapon>(DamageCauser);
 
@@ -109,11 +114,12 @@ void AMFG_Enemy::HealthChanged(UMFG_HealthComponent* CurrentHealthComponent, AAc
 	{
 		ShowHealthBar();
 	}
-	
+
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle_HideHealthBar, this, &AMFG_Enemy::HideHealthBar, 1.0f, false);
 
 	if (CurrentHealthComponent->IsDead())
 	{
+		MyAIController->DeactivateAIPerception();
 		MyAIController->UnPossess();
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle_DestroyEnemy, this, &AMFG_Enemy::DestroyEnemy, 4.0f, false);
 
@@ -121,6 +127,8 @@ void AMFG_Enemy::HealthChanged(UMFG_HealthComponent* CurrentHealthComponent, AAc
 		{
 			GameInstanceReference->AddEnemyDefeatedToCounter();
 		}
+
+		SetAlert(false);
 
 		HideHealthBar();
 	}
@@ -151,4 +159,14 @@ void AMFG_Enemy::HideHealthBar()
 {
 	bIsShowingHealthBar = false;
 	EnemyHealthBar->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void AMFG_Enemy::SetAlert(bool bValue)
+{
+	bIsAlert = bValue;
+
+	if (IsValid(GameModeReference))
+	{
+		GameModeReference->CheckAlertMode();
+	}
 }

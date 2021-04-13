@@ -6,8 +6,11 @@
 #include "GameFramework/Actor.h"
 #include "MFG_Ability.generated.h"
 
+class AMFG_Character;
+class USoundCue;
+
 USTRUCT(BlueprintType)
-struct FAbility
+struct FMFG_AbilityStruct
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -30,9 +33,15 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		UTexture2D* AbilityIcon;
-};
 
-class AMFG_Character;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		USoundCue* AbilitySound;
+
+public:
+	
+	USoundCue* GetAbilitySound() { return AbilitySound; };
+
+};
 
 UCLASS()
 class PROJECT_MFG_API AMFG_Ability : public AActor
@@ -42,7 +51,7 @@ class PROJECT_MFG_API AMFG_Ability : public AActor
 protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability Setup")
-		FAbility AbilityDetails;
+		FMFG_AbilityStruct AbilityDetails;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ability Setup")
 		AMFG_Character* PlayerCharacterReference;
@@ -85,6 +94,6 @@ protected:
 
 public:
 
-	FAbility GetAbilityDetails(){ return AbilityDetails; };
+	FMFG_AbilityStruct GetAbilityDetails(){ return AbilityDetails; };
 
 };

@@ -28,6 +28,8 @@
 #include "Core/MFG_GameInstance.h" 
 #include "Abilities/MFG_Ability.h"
 #include "UI/HUD/MFG_HUD.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 AMFG_Character::AMFG_Character()
@@ -83,8 +85,18 @@ AMFG_Character::AMFG_Character()
 
 	EffectsComponent = CreateDefaultSubobject<UMFG_EffectsComponent>(TEXT("EffectsComponent"));
 
+	StepSoundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("StepSoundComponent"));
+	StepSoundComponent->SetupAttachment(RootComponent);
+
+	VoiceSoundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("VoiceSoundComponent"));
+	VoiceSoundComponent->SetupAttachment(RootComponent);
+
+	AbilitiesSoundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AbilitiesSoundComponent"));
+	AbilitiesSoundComponent->SetupAttachment(RootComponent);
+
 	MaxUltimateXP = 100.0f;
 	MaxUltimateDuration = 8.0f;
+	MaxUltimateReloadSeconds = 240.0f;
 	UltimateFrequency = 0.5f;
 	bUltimateWithTick = true;
 
@@ -123,13 +135,16 @@ FVector AMFG_Character::GetPawnViewLocation() const
 void AMFG_Character::BeginPlay()
 {
 	Super::BeginPlay();
+
 	InitializeReferences();
 	CreateInitialWeapon();
 	CreateInitialAbilities();
+	StartUltimateLoading();
 
 	MeleeDetectorComponent->OnComponentBeginOverlap.AddDynamic(this, &AMFG_Character::MakeMeleeDamage);
 
 	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &AMFG_Character::OnHealthChange);
+	HealthComponent->OnHealthUpdateDelegate.AddDynamic(this, &AMFG_Character::OnHealthUpdate);
 
 	EffectsComponent->OnBurningStateChangeDelegate.AddDynamic(this, &AMFG_Character::OnBurningStateChange);
 }
@@ -192,11 +207,11 @@ void AMFG_Character::RollStart()
 
 void AMFG_Character::UsePrimaryAbility()
 {
-	if (!bIsUsingBag && !GetMovementComponent()->IsFalling() && CharacterAbilitiesArr.IsValidIndex(0))
+	if (!bIsUsingBag && !GetMovementComponent()->IsFalling() && CharacterAbilities.IsValidIndex(0))
 	{
-		if (IsValid(CharacterAbilitiesArr[0]))
+		if (IsValid(CharacterAbilities[0]))
 		{
-			CharacterAbilitiesArr[0]->CastAbility();
+			CharacterAbilities[0]->CastAbility();
 		}
 	}
 }
@@ -273,6 +288,8 @@ FVector AMFG_Character::GetCurrentPosition()
 void AMFG_Character::Jump()
 {
 	Super::Jump();
+
+	PlayVoiceSound(BeginJumpSound);
 }
 
 void AMFG_Character::StopJumping()
@@ -303,10 +320,18 @@ void AMFG_Character::CreateInitialAbilities()
 			AMFG_Ability* CurrentAbility = GetWorld()->SpawnActor<AMFG_Ability>(AbilityClass, GetActorLocation(), GetActorRotation());
 			if (IsValid(CurrentAbility))
 			{
-				CharacterAbilitiesArr.Add(CurrentAbility);
+				CharacterAbilities.Add(CurrentAbility);
 			}
 		}
 	}
+}
+
+void AMFG_Character::StartUltimateLoading()
+{
+	float XPAmount = MaxUltimateXP / MaxUltimateReloadSeconds;
+
+	TimerDelegate.BindUFunction(this, FName("GainUltimateXP"), XPAmount);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_GainXP, TimerDelegate, 1.0f, true);
 }
 
 void AMFG_Character::StartWeaponAction()
@@ -425,6 +450,8 @@ void AMFG_Character::StartMelee()
 		MyAnimInstance->Montage_Play(MeleeMontage, bIsUsingUltimate ? UltimatePlayRate : MeleePlayRate);
 	}
 
+	PlaySound(MeleeSound);
+
 	SetMeleeState(true);
 }
 
@@ -435,12 +462,11 @@ void AMFG_Character::StopMelee()
 
 void AMFG_Character::StartAbility()
 {
-	if (bCanUseAbility && !bIsUsingAbility && CharacterAbilitiesArr.IsValidIndex(1))
+	if (bCanUseAbility && !bIsUsingAbility && CharacterAbilities.IsValidIndex(1))
 	{
-		SetAbilityState(true);
-		if (IsValid(CharacterAbilitiesArr[1]))
+		if (IsValid(CharacterAbilities[1]))
 		{
-			CharacterAbilitiesArr[1]->CastAbility();
+			CharacterAbilities[1]->CastAbility();
 		}
 
 		BP_StartAbility();
@@ -464,6 +490,8 @@ void AMFG_Character::StartUltimate()
 		CurrentUltimateDuration = MaxUltimateDuration;
 
 		bCanUseUltimate = false;
+
+		PlayVoiceSound(UltimateSound);
 
 		if (IsValid(MyAnimInstance) && IsValid(UltimateMontage))
 		{
@@ -502,14 +530,24 @@ void AMFG_Character::GoToMainMenu()
 	UGameplayStatics::OpenLevel(GetWorld(), MainMenuMapName);
 }
 
+void AMFG_Character::PlaySound(USoundCue* PlayableSound)
+{
+	if (!IsValid(PlayableSound))
+	{
+		return;
+	}
+
+	UGameplayStatics::PlaySound2D(GetWorld(), PlayableSound);
+}
+
 void AMFG_Character::SetAbilityBehavior()
 {
-	if (CharacterAbilitiesArr.IsValidIndex(1))
+	if (CharacterAbilities.IsValidIndex(1))
 	{
-		if (IsValid(CharacterAbilitiesArr[1]))
+		if (IsValid(CharacterAbilities[1]))
 		{
 			//SetAbilityState(true);
-			CharacterAbilitiesArr[1]->SetAbilityBehavior();
+			CharacterAbilities[1]->SetAbilityBehavior();
 		}
 
 		BP_StartAbility();
@@ -561,12 +599,44 @@ void AMFG_Character::MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, A
 
 void AMFG_Character::OnHealthChange(UMFG_HealthComponent* CurrentHealthComponent, AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
-	if (HealthComponent->IsDead() && GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
+	if (!HealthComponent->IsDead())
 	{
-		if (IsValid(GameModeReference))
+		PlayVoiceSound(HurtSound);
+		bWasDamaged = true;
+	}
+
+	if (HealthComponent->IsDead())
+	{
+		PlayVoiceSound(DeathSound);
+
+		if (GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
 		{
-			GameModeReference->GameOver(this);
+			if (IsValid(GameModeReference))
+			{
+				GameModeReference->GameOver(this);
+			}
 		}
+	}
+}
+
+void AMFG_Character::OnHealthUpdate(float Health, float MaxHealth)
+{
+	if (Health <= 20)
+	{
+		PlayVoiceSound(AlmostDeadSound);
+	}
+	else
+	{	
+		if (VoiceSoundComponent->Sound == AlmostDeadSound)
+		{
+			VoiceSoundComponent->Stop();
+		}
+	}
+
+	if (Health == MaxHealth && bWasDamaged)
+	{
+		PlayVoiceSound(FullHealthSound);
+		bWasDamaged = false;
 	}
 }
 
@@ -718,6 +788,9 @@ void AMFG_Character::GainUltimateXP(float XPGained)
 	if (CurrentUltimateXP == MaxUltimateXP)
 	{
 		bCanUseUltimate = true;
+
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_GainXP);
+
 		OnUltimateStatusDelegate.Broadcast(true);
 	}
 
@@ -753,6 +826,8 @@ void AMFG_Character::UpdateUltimateDuration(float Value)
 			GetWorld()->GetTimerManager().ClearTimer(TimerHandle_Ultimate);
 		}
 
+		StartUltimateLoading();
+
 		BP_StopUltimate();
 	}
 }
@@ -778,4 +853,42 @@ void AMFG_Character::BeginUltimateBehavior()
 void AMFG_Character::SetShield(AMFG_Shield* NewShield)
 {
 	CurrentShield = NewShield;
+}
+
+void AMFG_Character::PlayStepSound(USoundCue* StepSound)
+{
+	StepSoundComponent->SetSound(StepSound);
+	StepSoundComponent->Play();
+}
+
+void AMFG_Character::PlayAbilitySound(FName AbilityName)
+{
+	for (AMFG_Ability* Ability : CharacterAbilities)
+	{
+		if (!IsValid(Ability))
+		{
+			continue;
+		}
+
+		if (Ability->GetAbilityDetails().AbilityName == AbilityName)
+		{
+			USoundCue* AbilitySound = Ability->GetAbilityDetails().GetAbilitySound();
+			if (IsValid(AbilitySound))
+			{
+				AbilitiesSoundComponent->SetSound(AbilitySound);
+				AbilitiesSoundComponent->Play();
+			}
+		}
+	}
+}
+
+void AMFG_Character::PlayVoiceSound(USoundCue* VoiceSound)
+{
+	if (!IsValid(VoiceSound))
+	{
+		return;
+	}
+
+	VoiceSoundComponent->SetSound(VoiceSound);
+	VoiceSoundComponent->Play();
 }

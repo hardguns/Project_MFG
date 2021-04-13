@@ -3,6 +3,9 @@
 
 #include "Objects/MFG_InteractiveObject.h"
 #include "Components/BoxComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
 #include "MFG_Character.h"
 
 // Sets default values
@@ -19,7 +22,11 @@ AMFG_InteractiveObject::AMFG_InteractiveObject()
 	MainColliderComponent->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
 	MainColliderComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 
+	InteractiveAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("InteractiveAudioComponent"));
+	InteractiveAudioComponent->SetupAttachment(RootComponent);
+
 	bSwitchState = false;
+	InteractionParamName = "Interaction";
 
 }
 
@@ -70,6 +77,17 @@ void AMFG_InteractiveObject::NotifyActorEndOverlap(AActor* OtherActor)
 void AMFG_InteractiveObject::SetObjectActiveState(bool NewState)
 {
 	bSwitchState = NewState;
+}
+
+void AMFG_InteractiveObject::PlayInteractionSound(USoundCue* ObjectSound)
+{
+	if (!IsValid(ObjectSound))
+	{
+		return;
+	}
+
+	InteractiveAudioComponent->SetSound(ObjectSound);
+	InteractiveAudioComponent->Play();
 }
 
 void AMFG_InteractiveObject::HitObject()

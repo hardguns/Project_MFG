@@ -11,6 +11,7 @@
 #include "Particles/ParticleSystem.h"
 #include "Project_MFG/Project_MFG.h"
 #include "GameFramework//Character.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 AMFG_ExplosiveBarrel::AMFG_ExplosiveBarrel()
@@ -94,13 +95,25 @@ void AMFG_ExplosiveBarrel::Explode()
 				GetWorldTimerManager().ClearTimer(TimerHandle_HandleExplosion);
 			}
 		}
-
 	}
 
 	if (IsValid(ExplosionEffect))
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionEffect, GetActorLocation(), GetActorRotation(), FVector(3.0f, 3.0f, 3.0f));
-		Destroy();
 	}
+
+	PlayExplosionSound();
+
+	Destroy();
+}
+
+void AMFG_ExplosiveBarrel::PlayExplosionSound()
+{
+	if (!IsValid(ExplosionSound))
+	{
+		return;
+	}
+
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), ExplosionSound, GetActorLocation());
 }
 

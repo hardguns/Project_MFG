@@ -11,6 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/PointLightComponent.h"
 #include "GameFramework/Character.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 AMFG_ProximityMine::AMFG_ProximityMine()
@@ -93,8 +94,11 @@ void AMFG_ProximityMine::Explode()
 	if (IsValid(ExplosionEffect))
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionEffect, GetActorLocation(), GetActorRotation(), FVector(3.0f, 3.0f, 3.0f));
-		Destroy();
 	}
+
+	PlayExplosionSound();
+
+	Destroy();
 }
 
 void AMFG_ProximityMine::ValidateDistance()
@@ -163,5 +167,14 @@ void AMFG_ProximityMine::OnHealthChange(UMFG_HealthComponent* CurrentHealthCompo
 	}
 }
 
+void AMFG_ProximityMine::PlayExplosionSound()
+{
+	if (!IsValid(ExplosionSound))
+	{
+		return;
+	}
+
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), ExplosionSound, GetActorLocation());
+}
 
 

@@ -22,10 +22,12 @@ class AMFG_Shield;
 class UMFG_GameInstance;
 class AMFG_Ability;
 class UMFG_HUD;
+class UAudioComponent;
+class USoundCue;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUltimateUpdateSignature, float, CurrentUltimateXP, float, MaxUltimateXP);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUltimateStatusSignature, bool, bIsAvailable);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAbilityChangeSignature, int, AbilityAmountAvailable, int, ReceivedAbilityIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnAbilityChangeSignature, int, AbilityAmountAvailable, int, ReceivedAbilityIndex, bool, bShowReloadingBar);
 
 UENUM()
 enum class EMFG_CharacterType : uint8
@@ -55,6 +57,15 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		UMFG_EffectsComponent* EffectsComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		UAudioComponent* AbilitiesSoundComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		UAudioComponent* StepSoundComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		UAudioComponent* VoiceSoundComponent;
 
 public:
 
@@ -98,6 +109,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ability")
 		bool bIsUsingAbility;
+		
+	UPROPERTY(BlueprintReadOnly, Category = "Audio")
+		bool bWasDamaged;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee")
 		float MeleeDamage;
@@ -189,6 +203,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float RollForce;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate")
+		float MaxUltimateReloadSeconds;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
 		TArray<FName> DoorKeys;
 
@@ -229,7 +246,7 @@ protected:
 		TArray<TSubclassOf<AMFG_Ability>> CharacterAbilitiesClasses;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Ability")
-		TArray<AMFG_Ability*> CharacterAbilitiesArr;
+		TArray<AMFG_Ability*> CharacterAbilities;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD")
 		UTexture2D* CharacterHUDImage;
@@ -242,15 +259,43 @@ protected:
 
 	FTimerHandle TimerHandle_Ultimate;
 
+	FTimerHandle TimerHandle_GainXP;
+
 	FTimerHandle TimerHandle_AutomaticShot;
 
 	FTimerHandle TimerHandle_BeginUltimateBehavior;
 
-	FTimerHandle TimerHandle_ReloadAbility1;
-
-	FTimerHandle TimerHandle_ReloadAbility2;
-
 	FTimerDelegate TimerDelegate;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* HurtSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* AlmostDeadSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* FullHealthSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* WalkRunStepSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* RunningBreatheSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* BeginJumpSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* EndJumpSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* MeleeSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* DeathSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* UltimateSound;
 
 public:
 
@@ -316,6 +361,8 @@ protected:
 
 	void CreateInitialAbilities();
 
+	void StartUltimateLoading();
+
 	UFUNCTION(BlueprintCallable)
 	void StartWeaponAction();
 
@@ -339,11 +386,16 @@ protected:
 
 	void GoToMainMenu();
 
+	void PlaySound(USoundCue* PlayableSound);
+
 	UFUNCTION()
 	void MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
 	void OnHealthChange(UMFG_HealthComponent* CurrentHealthComponent, AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
+
+	UFUNCTION()
+	void OnHealthUpdate(float Health, float MaxHealth);
 
 	UFUNCTION()
 	void OnBurningStateChange(UMFG_EffectsComponent* CurrentEffectsComponent, AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
@@ -418,7 +470,19 @@ public:
 
 	UMFG_HealthComponent* GetHealthComponent(){ return HealthComponent; };
 
-	TArray<AMFG_Ability*> GetCharacterAbilities() { return CharacterAbilitiesArr; };
+	TArray<AMFG_Ability*> GetCharacterAbilities() { return CharacterAbilities; };
+
+	USoundCue* GetWalkRunSound() { return WalkRunStepSound; };
+
+	USoundCue* GetEndJumpSound() { return EndJumpSound; };
+
+	USoundCue* GetRunningBreatheSound() { return RunningBreatheSound; };
+
+	void PlayStepSound(USoundCue* StepSound);
+
+	void PlayAbilitySound(FName AbilityName);
+
+	void PlayVoiceSound(USoundCue* VoiceSound);
 
 protected:
 

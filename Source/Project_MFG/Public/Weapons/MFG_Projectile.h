@@ -10,6 +10,7 @@ class USphereComponent;
 class UStaticMeshComponent;
 class UProjectileMovementComponent;
 class UParticleSystem;
+class USoundCue;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_Projectile : public AActor
@@ -29,9 +30,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		UProjectileMovementComponent* ProjectileMovementComponent;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
-		UParticleSystem* ExplosionEffect;
-
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
@@ -39,6 +37,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
 		float Damage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+		UParticleSystem* ExplosionEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* ExplosionSound;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
 		TSubclassOf<UDamageType> DamageType;
@@ -54,6 +58,8 @@ protected:
 	virtual void BeginPlay() override;
 
 	void OnDetonate();
+
+	void PlayExplosionSound();
 
 public:	
 	// Called every frame

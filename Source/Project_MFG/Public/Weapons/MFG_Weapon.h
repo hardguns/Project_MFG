@@ -9,6 +9,7 @@
 class UDamageType;
 class ACharacter;
 class UDataTable;
+class USoundCue;
 
 USTRUCT(BlueprintType)
 struct FRecoilBehaviourStruct
@@ -74,6 +75,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 		float CameraYawRecoilShake;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* ShotSound;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Recoil")
 		UDataTable* EnemyRecoilBehaviourDT;
 
@@ -116,4 +120,6 @@ public:
 
 	void GetRecoilInfo(FName RowName);
 
+	UFUNCTION(BlueprintCallable)
+	void PlaySound(USoundCue* SoundCue, bool bIs3D = false, FVector SoundLocation = FVector::ZeroVector);
 };

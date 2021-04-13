@@ -3,7 +3,9 @@
 
 #include "Items/MFG_Item.h"
 #include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Core/MFG_GameMode.h"
+#include "Sound/SoundCue.h"
 #include "MFG_Character.h"
 
 // Sets default values
@@ -54,5 +56,15 @@ void AMFG_Item::NotifyActorBeginOverlap(AActor* OtherActor)
 void AMFG_Item::Pickup(AMFG_Character* PickupCharacter)
 {
 	BP_Pickup(PickupCharacter);
+}
+
+void AMFG_Item::PlayPickupSound()
+{
+	if (!IsValid(PickupSound))
+	{
+		return;
+	}
+
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), PickupSound, GetActorLocation());
 }
 

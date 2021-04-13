@@ -9,6 +9,8 @@
 class USceneComponent;
 class UStaticMeshComponent;
 class UBoxComponent;
+class USoundCue;
+class UAudioComponent;
 
 UCLASS()
 class PROJECT_MFG_API AMFG_EPlatform : public AActor
@@ -20,30 +22,36 @@ public:
 	AMFG_EPlatform();
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	USceneComponent* CustomRootComponent;
+		USceneComponent* CustomRootComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UStaticMeshComponent* PlatformMeshComponent;
+		UStaticMeshComponent* PlatformMeshComponent;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
-	UBoxComponent* PlatformColliderComponent;
+		UBoxComponent* PlatformColliderComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		UAudioComponent* PlatformAudioComponent;
 
 protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Platform")
-	bool bIsActive;
+		bool bIsActive;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Platform")
-	bool bIsGoingUp;
+		bool bIsGoingUp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Platform")
-	float Speed;
+		float Speed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Platform")
-	float minHeight;
+		float minHeight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Platform")
-	float maxHeight;
+		float maxHeight;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+		USoundCue* PlatformSound;
 
 protected:
 	// Called when the game starts or when spawned
@@ -57,5 +65,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void SetActiveState(bool NewState);
+
+	void PlayPlatformSound();
 
 };

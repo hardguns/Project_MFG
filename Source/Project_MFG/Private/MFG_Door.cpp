@@ -4,6 +4,8 @@
 #include "MFG_Door.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
 #include "MFG_Character.h"
 
 // Sets default values
@@ -27,8 +29,11 @@ AMFG_Door::AMFG_Door()
 	KeyZoneColliderComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	KeyZoneColliderComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 
+	DoorAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("DoorAudioComponent"));
+
 	OpenAngle = -90.0f;
 	DoorTag = "KeyA";
+	DoorParamName = "Door";
 }
 
 // Called when the game starts or when spawned
@@ -70,6 +75,26 @@ void AMFG_Door::OpenDoor()
 // 	FRotator NewRotation = FRotator(0.0f, OpenAngle, 0.0f);
 // 	DoorComponent->SetRelativeRotation(NewRotation);
 	bIsOpen = true;
+
+	ChangeDoorSound();
+	PlayDoorSound(DoorBehaviorSound);
+
 	BP_OpenDoor();
+}
+
+void AMFG_Door::ChangeDoorSound()
+{
+	DoorAudioComponent->SetBoolParameter(DoorParamName, bIsOpen);
+}
+
+void AMFG_Door::PlayDoorSound(USoundCue* DoorSound)
+{
+	if (!IsValid(DoorSound))
+	{
+		return;
+	}
+
+	DoorAudioComponent->SetSound(DoorSound);
+	DoorAudioComponent->Play();
 }
 
