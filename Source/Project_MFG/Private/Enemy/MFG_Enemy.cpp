@@ -13,9 +13,7 @@
 #include "Components/WidgetComponent.h"
 #include "UI/Enemy/MFG_EnemyHealthBar.h"
 #include "Core/MFG_GameMode.h"
-#include "Niagara/Public/NiagaraComponent.h"
-#include "Niagara/Classes/NiagaraSystem.h"
-#include "Niagara/Public/NiagaraFunctionLibrary.h"
+#include "Enemy/MFG_EnemySpawner.h"
 
 AMFG_Enemy::AMFG_Enemy()
 {
@@ -131,6 +129,11 @@ void AMFG_Enemy::HealthChanged(UMFG_HealthComponent* CurrentHealthComponent, AAc
 		SetAlert(false);
 
 		HideHealthBar();
+
+		if (IsValid(MyEnemySpawner))
+		{
+			MyEnemySpawner->NotifyEnemyDead();
+		}
 	}
 	else
 	{

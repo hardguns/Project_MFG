@@ -29,6 +29,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUltimateUpdateSignature, float, 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUltimateStatusSignature, bool, bIsAvailable);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnAbilityChangeSignature, int, AbilityAmountAvailable, int, ReceivedAbilityIndex, bool, bShowReloadingBar);
 
+DECLARE_DELEGATE_OneParam(FStartAbilityDelegate, int);
+
 UENUM()
 enum class EMFG_CharacterType : uint8
 {
@@ -376,7 +378,7 @@ protected:
 
 	void StopMelee();
 
-	void StartAbility();
+	void StartAbility(int index);
 
 	void StopAbility();
 
@@ -436,7 +438,7 @@ public:
 
 	void SetAbilityState(bool NewState);
 
-	void SetAbilityBehavior();
+	void SetAbilityBehavior(int index);
 
 	UFUNCTION(BlueprintCallable)
 	void SetComboEnable(bool NewState);

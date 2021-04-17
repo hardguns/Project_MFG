@@ -14,6 +14,9 @@ class PROJECT_MFG_API UMFG_UseAbility : public UAnimNotify
 {
 	GENERATED_BODY()
 
+	UPROPERTY(EditAnywhere, Category = "Setup")
+		int AbilityIndex;
+
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
 	
 };

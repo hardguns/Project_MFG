@@ -109,9 +109,26 @@ void AMFG_Rifle::ActionShot()
 			//Make damage
 			AActor* HitActor = HitResult.GetActor();
 
+			AMFG_Character* EnemyHit = Cast<AMFG_Character>(HitActor);
+
+			if (IsValid(EnemyHit))
+			{
+				
+			}
+
 			if (IsValid(HitActor))
 			{
-				UGameplayStatics::ApplyPointDamage(HitActor, Damage, ShotDirection, HitResult, CurrentOwner->GetInstigatorController(), this, DamageType);
+				if (!IsValid(EnemyHit))
+				{
+					UGameplayStatics::ApplyPointDamage(HitActor, Damage, ShotDirection, HitResult, CurrentOwner->GetInstigatorController(), this, DamageType);
+				}
+				else 
+				{
+					if (!(CurrentCharacter->GetCharacterType() == EMFG_CharacterType::CharacterType_Enemy && EnemyHit->GetCharacterType() == EMFG_CharacterType::CharacterType_Enemy))
+					{
+						UGameplayStatics::ApplyPointDamage(HitActor, Damage, ShotDirection, HitResult, CurrentOwner->GetInstigatorController(), this, DamageType);
+					}
+				}
 			}
 
 			TraceEndPoint = HitResult.ImpactPoint;

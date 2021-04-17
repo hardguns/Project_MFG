@@ -11,7 +11,7 @@ class AMFG_Item;
 class AMFG_AIController;
 class UWidgetComponent; 
 class UMFG_EnemyHealthBar;
-class UNiagaraSystem;
+class AMFG_EnemySpawner;
 
 /**
  *
@@ -52,6 +52,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loot System")
 		float LootProbability;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Spawner")
+		AMFG_EnemySpawner* MyEnemySpawner;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Navigation Path")
 		AMFG_PathActor* MyPath;
@@ -100,5 +103,8 @@ public:
 
 	bool IsAlert(){ return bIsAlert; };
 	void SetAlert(bool bValue);
+
+	void SetEnemySpawner(AMFG_EnemySpawner* NewSpawner) { MyEnemySpawner = NewSpawner; };
+	void SetPathActor(AMFG_PathActor* NewPathActor) { MyPath = NewPathActor; };
 
 };

@@ -205,16 +205,16 @@ void AMFG_Character::RollStart()
 //	bIsRolling = false;
 //}
 
-void AMFG_Character::UsePrimaryAbility()
-{
-	if (!bIsUsingBag && !GetMovementComponent()->IsFalling() && CharacterAbilities.IsValidIndex(0))
-	{
-		if (IsValid(CharacterAbilities[0]))
-		{
-			CharacterAbilities[0]->CastAbility();
-		}
-	}
-}
+//void AMFG_Character::UsePrimaryAbility()
+//{
+//	if (!bIsUsingBag && !GetMovementComponent()->IsFalling() && CharacterAbilities.IsValidIndex(0))
+//	{
+//		if (IsValid(CharacterAbilities[0]))
+//		{
+//			CharacterAbilities[0]->CastAbility();
+//		}
+//	}
+//}
 
 void AMFG_Character::Run()
 {
@@ -460,13 +460,13 @@ void AMFG_Character::StopMelee()
 
 }
 
-void AMFG_Character::StartAbility()
+void AMFG_Character::StartAbility(int index)
 {
-	if (bCanUseAbility && !bIsUsingAbility && CharacterAbilities.IsValidIndex(1))
+	if (bCanUseAbility && !bIsUsingAbility && CharacterAbilities.IsValidIndex(index))
 	{
-		if (IsValid(CharacterAbilities[1]))
+		if (IsValid(CharacterAbilities[index]))
 		{
-			CharacterAbilities[1]->CastAbility();
+			CharacterAbilities[index]->CastAbility();
 		}
 
 		BP_StartAbility();
@@ -540,14 +540,13 @@ void AMFG_Character::PlaySound(USoundCue* PlayableSound)
 	UGameplayStatics::PlaySound2D(GetWorld(), PlayableSound);
 }
 
-void AMFG_Character::SetAbilityBehavior()
+void AMFG_Character::SetAbilityBehavior(int index)
 {
-	if (CharacterAbilities.IsValidIndex(1))
+	if (CharacterAbilities.IsValidIndex(index))
 	{
-		if (IsValid(CharacterAbilities[1]))
+		if (IsValid(CharacterAbilities[index]))
 		{
-			//SetAbilityState(true);
-			CharacterAbilities[1]->SetAbilityBehavior();
+			CharacterAbilities[index]->SetAbilityBehavior();
 		}
 
 		BP_StartAbility();
@@ -701,7 +700,7 @@ void AMFG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 
 	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &AMFG_Character::Run);
 
-	PlayerInputComponent->BindAction("PrimaryAbility", IE_Pressed, this, &AMFG_Character::UsePrimaryAbility);
+	PlayerInputComponent->BindAction<FStartAbilityDelegate>("PrimaryAbility", IE_Pressed, this, &AMFG_Character::StartAbility, 0);
 
 	PlayerInputComponent->BindAction("Action", IE_Pressed, this, &AMFG_Character::DoAction);
 
@@ -713,7 +712,7 @@ void AMFG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AMFG_Character::StartMelee);
 	PlayerInputComponent->BindAction("Melee", IE_Released, this, &AMFG_Character::StopMelee);
 
-	PlayerInputComponent->BindAction("AdditionalAbility", IE_Pressed, this, &AMFG_Character::StartAbility);
+	PlayerInputComponent->BindAction<FStartAbilityDelegate>("AdditionalAbility", IE_Pressed, this, &AMFG_Character::StartAbility, 1);
 	PlayerInputComponent->BindAction("AdditionalAbility", IE_Released, this, &AMFG_Character::StopAbility);
 
 	PlayerInputComponent->BindAction("Ultimate", IE_Pressed, this, &AMFG_Character::StartUltimate);

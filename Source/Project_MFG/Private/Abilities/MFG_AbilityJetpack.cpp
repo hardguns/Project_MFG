@@ -2,6 +2,8 @@
 
 
 #include "Abilities/MFG_AbilityJetpack.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "MFG_Character.h"
 
 void AMFG_AbilityJetpack::BeginPlay()
@@ -19,6 +21,16 @@ void AMFG_AbilityJetpack::CastAbility()
 	{
 		if (AbilityDetails.CurrentAbilityUseAmount > 0)
 		{
+			ACharacter* PlayerCharacter = Cast<ACharacter>(PlayerCharacterReference);
+			if (IsValid(PlayerCharacter))
+			{
+				UPawnMovementComponent* Movement = PlayerCharacter->GetMovementComponent();
+				if (PlayerCharacterReference->GetIsUsingBag() || Movement->IsFalling())
+				{
+					return;
+				}
+			}
+			
 			FVector currentPosition = PlayerCharacterReference->GetCurrentPosition();
 			PlayerCharacterReference->LaunchCharacter(currentPosition * DashForce, true, true);
 			PlayerCharacterReference->SetIsUsingBag(true);

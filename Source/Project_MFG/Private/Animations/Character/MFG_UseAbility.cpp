@@ -13,7 +13,7 @@ void UMFG_UseAbility::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase
 		AMFG_Character* Character = Cast<AMFG_Character>(CharacterActor);
 		if (IsValid(Character))
 		{
-			Character->SetAbilityBehavior();
+			Character->SetAbilityBehavior(AbilityIndex);
 		}
 	}
 }
