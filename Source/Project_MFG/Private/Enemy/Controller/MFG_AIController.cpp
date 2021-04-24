@@ -30,7 +30,21 @@ void AMFG_AIController::BeginPlay()
 		RunBehaviorTree(EnemyBehaviorTree);
 	}
 
-	MyEnemy = Cast<AMFG_Enemy>(K2_GetPawn());
+	SetBlackboardValues(K2_GetPawn());
+
+	AIPerceptionComponent->OnPerceptionUpdated.AddDynamic(this, &AMFG_AIController::UpdateSenses);
+}
+
+void AMFG_AIController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	SetBlackboardValues(InPawn);
+}
+
+void AMFG_AIController::SetBlackboardValues(APawn* EnemyPawn)
+{
+	MyEnemy = Cast<AMFG_Enemy>(EnemyPawn);
 	if (IsValid(MyEnemy))
 	{
 		MyBlackboard = UAIBlueprintHelperLibrary::GetBlackboard(this);
@@ -42,8 +56,6 @@ void AMFG_AIController::BeginPlay()
 			MyBlackboard->SetValueAsFloat(WaitingTimeParameterName, MyEnemy->GetWaitingTime());
 		}
 	}
-
-	AIPerceptionComponent->OnPerceptionUpdated.AddDynamic(this, &AMFG_AIController::UpdateSenses);
 }
 
 void AMFG_AIController::UpdateSenses(const TArray<AActor*>& UpdatedActors)

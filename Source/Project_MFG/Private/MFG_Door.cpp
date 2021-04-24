@@ -32,6 +32,7 @@ AMFG_Door::AMFG_Door()
 	DoorAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("DoorAudioComponent"));
 
 	OpenAngle = -90.0f;
+	CloseAngle = 0.0f;
 	DoorTag = "KeyA";
 	DoorParamName = "Door";
 }
@@ -46,6 +47,11 @@ void AMFG_Door::BeginPlay()
 void AMFG_Door::CheckKeyFromPlayer(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (bIsOpen)
+	{
+		return;
+	}
+
+	if (!bCanOpenDoor)
 	{
 		return;
 	}
@@ -80,6 +86,16 @@ void AMFG_Door::OpenDoor()
 	PlayDoorSound(DoorBehaviorSound);
 
 	BP_OpenDoor();
+}
+
+void AMFG_Door::CloseDoor()
+{
+	bIsOpen = false;
+
+	ChangeDoorSound();
+	PlayDoorSound(DoorBehaviorSound);
+
+	BP_CloseDoor();
 }
 
 void AMFG_Door::ChangeDoorSound()

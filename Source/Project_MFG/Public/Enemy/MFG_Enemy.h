@@ -98,6 +98,8 @@ public:
 	int GetDirectionIndex() { return DirectionIndex; };
 	float GetWaitingTime() { return WaitingTimeOnPathPoint; };
 
+	void SetDirectionIndex(int NewDirectionIndex) { DirectionIndex = NewDirectionIndex; };
+
 	void ShowHealthBar();
 	void HideHealthBar();
 

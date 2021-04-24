@@ -40,7 +40,13 @@ public:
 		float OpenAngle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "My Door")
+		float CloseAngle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "My Door")
 		bool bIsOpen;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "My Door")
+		bool bCanOpenDoor;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
 		FName DoorParamName;
@@ -70,6 +76,17 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "My Door")
 	void BP_OpenDoor();
+
+	void CloseDoor();
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "My Door")
+	void BP_CloseDoor();
+
+	bool GetCanOpenDoor() { return bCanOpenDoor; };
+
+	void SetCanOpenDoor(bool NewValue) { bCanOpenDoor = NewValue; };
+
+	bool GetIsDoorOpen() { return bIsOpen; };
 
 	void ChangeDoorSound();
 
