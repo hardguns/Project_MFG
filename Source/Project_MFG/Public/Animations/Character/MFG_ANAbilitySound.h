@@ -14,9 +14,11 @@ class PROJECT_MFG_API UMFG_ANAbilitySound : public UAnimNotify
 {
 	GENERATED_BODY()
 
+	//Gets ability name in AnimMontage
 	UPROPERTY(EditAnywhere, Category = "Setup")
 	FName AbilityName;
 
+	//Notifies when to reproduce sound
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
 	
 };

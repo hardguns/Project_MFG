@@ -8,6 +8,7 @@
 
 class AMFG_GameMode;
 class UMFG_HUDObjective;
+class UVerticalBox;
 
 UCLASS()
 class PROJECT_MFG_API UMFG_HUDObjectivesContainer : public UUserWidget
@@ -30,7 +31,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void InitializeObjectives(TArray<UMFG_HUDObjective*> NewObjectives);
 
+	UFUNCTION(BlueprintCallable)
+	void CreateNewObjectives(TArray<UMFG_HUDObjective*> NewObjectives);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void BP_CreateNewObjectives();
+
 	UFUNCTION()
-	void UpdateObjectives(FName KeyTag);
+	void UpdateObjectives(FName IdentifierTag);
 	
 };

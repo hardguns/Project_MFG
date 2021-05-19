@@ -19,6 +19,8 @@ AMFG_AIController::AMFG_AIController()
 	CanSeePlayerParameterName = "bCanSeePlayer";
 	InvestigatingParameterName = "bIsInvestigating";
 	TargetLocationParameterName = "TargetLocation";
+	ObjectToDestroyParameterName = "ObjectToDestroy";
+	WaitingTimeActionParamaterName = "TimeBetweenAction";
 }
 
 void AMFG_AIController::BeginPlay()
@@ -54,6 +56,15 @@ void AMFG_AIController::SetBlackboardValues(APawn* EnemyPawn)
 			MyBlackboard->SetValueAsBool(LoopPathParameterName, MyEnemy->GetLoopPath());
 			MyBlackboard->SetValueAsInt(DirectionIndexParameter, MyEnemy->GetDirectionIndex());
 			MyBlackboard->SetValueAsFloat(WaitingTimeParameterName, MyEnemy->GetWaitingTime());
+			if (IsValid(MyEnemy->GetDestructibleObject()))
+			{
+				MyBlackboard->SetValueAsObject(ObjectToDestroyParameterName, MyEnemy->GetDestructibleObject());
+			}
+
+			if (MyEnemy->GetEnemyType() == EMFG_EnemyType::EnemyType_Shooter || MyEnemy->GetEnemyType() == EMFG_EnemyType::EnemyType_DestroyerShooter)
+			{
+				MyBlackboard->SetValueAsFloat(WaitingTimeActionParamaterName, MyEnemy->GetTimeBetweenAction());
+			}
 		}
 	}
 }

@@ -19,6 +19,7 @@ void AMFG_Ability::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//Gets player reference placed in world
 	ACharacter* Character = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 	if (IsValid(Character))
 	{
@@ -33,21 +34,29 @@ void AMFG_Ability::Tick(float DeltaTime)
 
 }
 
-void AMFG_Ability::CastAbility()
+/*------------------------------------------ Ability behavior -------------------------------------------- 
+* As parent class these functions let programmer to add general behavior to abilities
+*/
+
+//Sets the action when player or enemy is casting an ability
+void AMFG_Ability::CastAbility(AMFG_Character* AbilityCaster)
 {
-	BP_CastAbility();
+	BP_CastAbility(AbilityCaster);
 }
 
-void AMFG_Ability::SetAbilityBehavior()
+//If some extra behavior is necessary in ability, it can be set here 
+void AMFG_Ability::SetAbilityBehavior(AMFG_Character* AbilityCaster)
 {
-	BP_SetAbilityBehavior();
+	BP_SetAbilityBehavior(AbilityCaster);
 }
 
+//Avoid player or enemy to cast an ability (this works can work with long casting abilities)
 void AMFG_Ability::StopCastingAbility()
 {
 	BP_StopCastingAbility();
 }
 
+//Use in case that ability use amount must be reloaded 
 void AMFG_Ability::ReloadAbility()
 {
 	BP_ReloadAbility();

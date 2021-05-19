@@ -47,6 +47,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Enemy Controller")
 		FName TargetLocationParameterName;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Enemy Controller")
+		FName ObjectToDestroyParameterName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Enemy Controller")
+		FName WaitingTimeActionParamaterName;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Enemy Controller")
 		AMFG_Enemy* MyEnemy;
 

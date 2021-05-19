@@ -16,6 +16,15 @@ class AMFG_EnemySpawner;
 /**
  *
  */
+UENUM()
+enum class EMFG_EnemyType : uint8
+{
+	EnemyType_Shooter				UMETA(DisplayName = "Shooter"),
+	EnemyType_Melee					UMETA(DisplayName = "Melee"),
+	EnemyType_DestroyerShooter		UMETA(DisplayName = "DestroyerShooter"),
+	EnemyType_DestroyerMelee		UMETA(DisplayName = "DestroyerMelee")
+};
+
 UCLASS()
 class PROJECT_MFG_API AMFG_Enemy : public AMFG_Character
 {
@@ -41,6 +50,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "AI")
 		bool bIsAlert;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI|Attack System")
+		float TimeBetweenAction;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI|Navigation Path")
 		int DirectionIndex;
 
@@ -53,8 +65,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loot System")
 		float LootProbability;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		EMFG_EnemyType EnemyType;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Spawner")
 		AMFG_EnemySpawner* MyEnemySpawner;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI|Destructible Object")
+		AActor* DestructibleObject;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Navigation Path")
 		AMFG_PathActor* MyPath;
@@ -97,6 +115,9 @@ public:
 	bool GetLoopPath() { return bLoopPath; };
 	int GetDirectionIndex() { return DirectionIndex; };
 	float GetWaitingTime() { return WaitingTimeOnPathPoint; };
+	float GetTimeBetweenAction() { return TimeBetweenAction; };
+	AActor* GetDestructibleObject() { return DestructibleObject; };
+	EMFG_EnemyType GetEnemyType() { return EnemyType; };
 
 	void SetDirectionIndex(int NewDirectionIndex) { DirectionIndex = NewDirectionIndex; };
 
@@ -108,5 +129,6 @@ public:
 
 	void SetEnemySpawner(AMFG_EnemySpawner* NewSpawner) { MyEnemySpawner = NewSpawner; };
 	void SetPathActor(AMFG_PathActor* NewPathActor) { MyPath = NewPathActor; };
+	void SetDestructibleObject(AActor* NewDestructibleObject) { DestructibleObject = NewDestructibleObject; };
 
 };

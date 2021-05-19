@@ -39,10 +39,10 @@ public:
 
 	virtual void BeginPlay() override;
 
-	virtual void CastAbility() override;
+	virtual void CastAbility(AMFG_Character* AbilityCaster) override;
 
 	virtual void ReloadAbility() override;
 
-	virtual void SetAbilityBehavior() override;
+	virtual void SetAbilityBehavior(AMFG_Character* AbilityCaster) override;
 	
 };

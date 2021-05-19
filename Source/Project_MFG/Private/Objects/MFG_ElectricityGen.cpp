@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MFG_EPlatform.h"
 #include "Objects/MFG_Activable.h"
+#include "Core/MFG_GameMode.h"
 
 AMFG_ElectricityGen::AMFG_ElectricityGen() 
 {
@@ -99,9 +100,11 @@ void AMFG_ElectricityGen::ActivateElectricity()
 					}
 				}
 
+				GameModeReference->EnableElectricity(ObjectiveIdentifier);
 				ActivateSpawners();
 			}
 		}
+
 	}
 }
 

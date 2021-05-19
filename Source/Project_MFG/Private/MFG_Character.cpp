@@ -136,11 +136,16 @@ void AMFG_Character::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//Sets different references from map
 	InitializeReferences();
+	//Get weapon subclass and initialize weapon
 	CreateInitialWeapon();
+	//Sets abilities to player or enemy
 	CreateInitialAbilities();
+	//Starts timer that loads ultimate automatically
 	StartUltimateLoading();
 
+	//Delegates subscriptions
 	MeleeDetectorComponent->OnComponentBeginOverlap.AddDynamic(this, &AMFG_Character::MakeMeleeDamage);
 
 	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &AMFG_Character::OnHealthChange);
@@ -181,11 +186,14 @@ void AMFG_Character::CrouchStart()
 
 	if (bIsCrouching)
 	{
+		//Sets crouch behavior from ACharacter class
 		Super::Crouch();
 	}
 	else
 	{
+		//Sets uncrouch behavior from ACharacter class
 		Super::UnCrouch();
+		//Sets speed depending on player action (running, walking, crouching)
 		SetCharacterSpeed();
 	}
 }
@@ -193,28 +201,7 @@ void AMFG_Character::CrouchStart()
 void AMFG_Character::RollStart()
 {
 	bIsRolling = true;
-	/*if (bIsRolling)
-	{
-		FVector currentPosition = GetCurrentPosition();
-		Super::LaunchCharacter(currentPosition * RollForce, true, true);
-	}*/
 }
-
-//void AMFG_Character::RollEnd()
-//{
-//	bIsRolling = false;
-//}
-
-//void AMFG_Character::UsePrimaryAbility()
-//{
-//	if (!bIsUsingBag && !GetMovementComponent()->IsFalling() && CharacterAbilities.IsValidIndex(0))
-//	{
-//		if (IsValid(CharacterAbilities[0]))
-//		{
-//			CharacterAbilities[0]->CastAbility();
-//		}
-//	}
-//}
 
 void AMFG_Character::Run()
 {
@@ -222,12 +209,14 @@ void AMFG_Character::Run()
 
 	if (bIsCrouching)
 	{
+		//Sets uncrouch behavior from ACharacter class
 		Super::UnCrouch();
 		bIsCrouching = false;
 	}
 
 	if (bIsShooting)
 	{
+		//Player is not able to action weapon when running
 		StopWeaponAction();
 	}
 
@@ -241,6 +230,7 @@ void AMFG_Character::StopRunning()
 	SetCharacterSpeed();
 }
 
+//Set speed depending on player action (running, walking, crouching)
 void AMFG_Character::SetCharacterSpeed()
 {
 	if (bIsRunning)
@@ -255,6 +245,7 @@ void AMFG_Character::SetCharacterSpeed()
 	}
 }
 
+//Interact with object to activate it when player press a key
 void AMFG_Character::DoAction()
 {
 	if (IsValid(InteractiveObject))
@@ -265,9 +256,9 @@ void AMFG_Character::DoAction()
 			ActivableObj->CheckActivable(this);
 		}
 	}
-
 }
 
+//Gets player current position depending on which camera is used for the game
 FVector AMFG_Character::GetCurrentPosition()
 {
 	FVector currentPosition;
@@ -287,9 +278,13 @@ FVector AMFG_Character::GetCurrentPosition()
 
 void AMFG_Character::Jump()
 {
+	//Sets jump behavior from ACharacter class
 	Super::Jump();
 
-	PlayVoiceSound(BeginJumpSound);
+	if (!bIsCrouching)
+	{
+		PlayVoiceSound(BeginJumpSound);
+	}
 }
 
 void AMFG_Character::StopJumping()
@@ -299,6 +294,7 @@ void AMFG_Character::StopJumping()
 
 void AMFG_Character::CreateInitialWeapon()
 {
+	//Uses weapon class to spawn and attach actor in player
 	if (IsValid(InitialWeaponClass))
 	{
 		CurrentWeapon = GetWorld()->SpawnActor<AMFG_Weapon>(InitialWeaponClass, GetActorLocation(), GetActorRotation());
@@ -313,6 +309,7 @@ void AMFG_Character::CreateInitialWeapon()
 
 void AMFG_Character::CreateInitialAbilities()
 {
+	//Spawns abilities and set it in CharacterAbilities for player's use
 	for (TSubclassOf<AMFG_Ability> AbilityClass : CharacterAbilitiesClasses)
 	{
 		if (IsValid(AbilityClass))
@@ -326,14 +323,18 @@ void AMFG_Character::CreateInitialAbilities()
 	}
 }
 
+//Fills ultimate automatically
 void AMFG_Character::StartUltimateLoading()
 {
+	//Calculates XPAmount in order to fill bar automatically in a certain time set in MaxUltimateReloadSeconds
 	float XPAmount = MaxUltimateXP / MaxUltimateReloadSeconds;
 
+	//Sets timer delegate to bind GainUltimateXP with XPAmount parameter
 	TimerDelegate.BindUFunction(this, FName("GainUltimateXP"), XPAmount);
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle_GainXP, TimerDelegate, 1.0f, true);
 }
 
+//Player or enemy attacking
 void AMFG_Character::StartWeaponAction()
 {
 	if (!bCanUseWeapon)
@@ -344,19 +345,23 @@ void AMFG_Character::StartWeaponAction()
 	bIsShooting = true;
 	if (bIsRunning)
 	{
+		//When using weapon player cannot run 
 		StopRunning();
 	}
 
 	if (IsValid(CurrentWeapon))
 	{
+		//Sets weapon damage depending on Ultimate state
 		CurrentWeapon->SetCurrentDamage(bIsUsingUltimate ? WeaponInitialDamage * UltimateWeaponDamageMultiplier : WeaponInitialDamage);
 
+		//Triggers weapon action
 		CurrentWeapon->StartAction();
 
 		if (bIsUsingUltimate)
 		{
 			//CurrentWeapon->SetCurrentDamage(WeaponInitialDamage * UltimateWeaponDamageMultiplier);
 
+			//If rifle is equipped when using ultimate shots will be automatic
 			AMFG_Rifle* RifleEquipped = Cast<AMFG_Rifle>(CurrentWeapon);
 			if (IsValid(RifleEquipped))
 			{
@@ -373,6 +378,7 @@ void AMFG_Character::StopWeaponAction()
 		return;
 	}
 
+	//Stops weapon action
 	bIsShooting = false;
 	if (IsValid(CurrentWeapon))
 	{
@@ -391,20 +397,22 @@ void AMFG_Character::StopWeaponAction()
 	}
 }
 
+//Sets weapon behavior on player action key
 void AMFG_Character::SetWeaponBehavior()
 {
 	if (!bIsUsingUltimate)
 	{
 		StopWeaponAction();
+		//In case of using rifle rifle set is to automatic
 		AMFG_Rifle* RifleEquipped = Cast<AMFG_Rifle>(CurrentWeapon);
 		if (IsValid(RifleEquipped))
 		{
 			RifleEquipped->bIsAutomatic = !RifleEquipped->bIsAutomatic;
-			//bIsWeaponAutomatic = !bIsWeaponAutomatic;
 		}
 	}
 }
 
+//Sets melee for player
 void AMFG_Character::StartMelee()
 {
 	if (bIsRunning && GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
@@ -417,6 +425,7 @@ void AMFG_Character::StartMelee()
 		return;
 	}
 
+	//Sets (when combos enabled) how damage will be increased on each combo
 	if (bCanMakeCombos)
 	{
 		if (bIsDoingMelee)
@@ -440,11 +449,13 @@ void AMFG_Character::StartMelee()
 		}
 	}
 
+	//If interactive object can be hit action is triggered
 	if (IsValid(InteractiveObject))
 	{
 		InteractiveObject->HitObject();
 	}
 
+	//Calculates damage depending on Ultimate State
 	if (IsValid(MyAnimInstance) && IsValid(MeleeMontage))
 	{
 		MyAnimInstance->Montage_Play(MeleeMontage, bIsUsingUltimate ? UltimatePlayRate : MeleePlayRate);
@@ -460,13 +471,15 @@ void AMFG_Character::StopMelee()
 
 }
 
+//Uses ability depending on index (Player action key)
 void AMFG_Character::StartAbility(int index)
 {
+	//Checks if player is using ability to cast new ability
 	if (bCanUseAbility && !bIsUsingAbility && CharacterAbilities.IsValidIndex(index))
 	{
 		if (IsValid(CharacterAbilities[index]))
 		{
-			CharacterAbilities[index]->CastAbility();
+			CharacterAbilities[index]->CastAbility(this);
 		}
 
 		BP_StartAbility();
@@ -495,6 +508,7 @@ void AMFG_Character::StartUltimate()
 
 		if (IsValid(MyAnimInstance) && IsValid(UltimateMontage))
 		{
+			//Unable movement to show ultimate animation
 			GetCharacterMovement()->MaxWalkSpeed = 0.0f;
 			bCanUseWeapon = false;
 
@@ -503,6 +517,7 @@ void AMFG_Character::StartUltimate()
 				UltimateWeaponEffectComponent = UGameplayStatics::SpawnEmitterAttached(UltimateWeaponEffect, GetMesh(), MeleeSocketName);
 			}
 
+			//Sets ultimate behavior after montage is played
 			const float StartUltimateMontageDuration = MyAnimInstance->Montage_Play(UltimateMontage);
 			GetWorld()->GetTimerManager().SetTimer(TimerHandle_BeginUltimateBehavior, this, &AMFG_Character::BeginUltimateBehavior, StartUltimateMontageDuration, false);
 		}
@@ -522,6 +537,7 @@ void AMFG_Character::StopUltimate()
 
 void AMFG_Character::GoToMainMenu()
 {
+	//Before going to main menu saves data
 	if (IsValid(GameInstanceReference))
 	{
 		GameInstanceReference->SaveData();
@@ -542,11 +558,12 @@ void AMFG_Character::PlaySound(USoundCue* PlayableSound)
 
 void AMFG_Character::SetAbilityBehavior(int index)
 {
+	//This helps to know at which moment is necessary to do an action in ability montage
 	if (CharacterAbilities.IsValidIndex(index))
 	{
 		if (IsValid(CharacterAbilities[index]))
 		{
-			CharacterAbilities[index]->SetAbilityBehavior();
+			CharacterAbilities[index]->SetAbilityBehavior(this);
 		}
 
 		BP_StartAbility();
@@ -567,6 +584,7 @@ void AMFG_Character::MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, A
 
 		if (IsValid(MeleeTarget))
 		{
+			//Depending of who's doing the action checks if target is not the same CharacterType
 			bool bPlayerAttackingEnemy = GetCharacterType() == EMFG_CharacterType::CharacterType_Player && MeleeTarget->GetCharacterType() == EMFG_CharacterType::CharacterType_Enemy;
 			bool bEnemyAttackingPlayer = GetCharacterType() == EMFG_CharacterType::CharacterType_Enemy && MeleeTarget->GetCharacterType() == EMFG_CharacterType::CharacterType_Player;
 
@@ -628,26 +646,26 @@ void AMFG_Character::OnHealthUpdate(float Health, float MaxHealth)
 	{	
 		if (VoiceSoundComponent->Sound == AlmostDeadSound)
 		{
+			//Stop AlmostDeadSound because player or enemy increased their health
 			VoiceSoundComponent->Stop();
 		}
 	}
 
 	if (Health == MaxHealth && bWasDamaged)
 	{
+		//Play FullHealthSound after healing at maximum
 		PlayVoiceSound(FullHealthSound);
 		bWasDamaged = false;
 	}
 }
 
+//Delegate subscribe when player or enemy is being affected by some effect such as Burning
 void AMFG_Character::OnBurningStateChange(UMFG_EffectsComponent* CurrentEffectsComponent, AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
 {
+	//When player or enemy is burning
 	if (EffectsComponent->IsBurning())
 	{
 		BurningEffectComponent->SetVisibility(true);
-		/*if (IsValid(BurningEffect))
-		{
-			BurningEffectComponent = UGameplayStatics::SpawnEmitterAttached(BurningEffect, GetMesh(), EffectsSocketName);
-		}*/
 	}
 	else
 	{
@@ -655,15 +673,13 @@ void AMFG_Character::OnBurningStateChange(UMFG_EffectsComponent* CurrentEffectsC
 		{
 			BurningEffectComponent->SetVisibility(false);
 		}
-		/*if (IsValid(BurningEffectComponent))
-		{
-			BurningEffectComponent->DestroyComponent();
-		}*/
 	}
 }
 
+//Controls up and down view for player
 void AMFG_Character::AddControllerPitchInput(float value)
 {
+	//Checks if LookInversion is active
 	Super::AddControllerPitchInput(bIsLookInversion ? -value : value);
 }
 
@@ -672,6 +688,7 @@ void AMFG_Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//If ultimate is used by tick ultimate duration is updated from here
 	if (bUltimateWithTick && bIsUsingUltimate)
 	{
 		UpdateUltimateDuration(DeltaTime);
@@ -721,48 +738,57 @@ void AMFG_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Exit", IE_Pressed, this, &AMFG_Character::GoToMainMenu);
 }
 
+//Adds keys when picked up by player
 void AMFG_Character::AddKey(FName NewKey)
 {
 	DoorKeys.Add(NewKey);
 }
 
+//Removes keys when picked up by player
 void AMFG_Character::RemoveKey(FName KeyToRemove)
 {
 	DoorKeys.Remove(KeyToRemove);
 }
 
+//Uses Character HealthComponent to add health
 bool AMFG_Character::TryAddHealth(float HealthToAdd)
 {
 	return HealthComponent->TryAddHealth(HealthToAdd);
 }
 
+//Check if some key was picked up by player
 bool AMFG_Character::HasKey(FName KeyTag)
 {
 	return DoorKeys.Contains(KeyTag);
 }
 
+//Sets if player is using Jetpack ability to be checked in AnimationBlueprint
 void AMFG_Character::SetIsUsingBag(bool NewState)
 {
 	bIsUsingBag = NewState;
 }
 
+//Enables or disables melee detector component to make (or not) damage
 void AMFG_Character::SetMeleeDetectorCollision(ECollisionEnabled::Type NewCollisionState)
 {
 	MeleeDetectorComponent->SetCollisionEnabled(NewCollisionState);
 }
 
+//Enables or disables weapon or melee usage (depending on action)
 void AMFG_Character::SetMeleeState(bool NewState)
 {
 	bIsDoingMelee = NewState;
 	bCanUseWeapon = !NewState;
 }
 
+//Enables or disables abilities for player or enemy
 void AMFG_Character::SetAbilityState(bool NewState)
 {
 	bIsUsingAbility = NewState;
 	bCanUseAbility = !NewState;
 }
 
+//Enables or disables when player can make combos
 void AMFG_Character::SetComboEnable(bool NewState)
 {
 	bIsComboEnable = NewState;
@@ -774,6 +800,7 @@ void AMFG_Character::ResetCombo()
 	CurrentComboMultiplier = 1.0f;
 }
 
+//Gives XP to player for making some action in game
 void AMFG_Character::GainUltimateXP(float XPGained)
 {
 	if (bCanUseUltimate || bIsUsingUltimate)
@@ -782,27 +809,33 @@ void AMFG_Character::GainUltimateXP(float XPGained)
 	}
 
 	CurrentUltimateXP = FMath::Clamp(CurrentUltimateXP + XPGained, 0.0f, MaxUltimateXP);
+	//Updates ultimate state for widgets and classes
 	OnUltimateUpdateDelegate.Broadcast(CurrentUltimateXP, MaxUltimateXP);
 
 	if (CurrentUltimateXP == MaxUltimateXP)
 	{
 		bCanUseUltimate = true;
 
+		//Stops automatic XP gaining
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle_GainXP);
 
+		//Broadcast that ultimate is ready to use
 		OnUltimateStatusDelegate.Broadcast(true);
 	}
 
 	BP_GainUltimateXP(XPGained);
 }
 
+//Changes ultimate duration
 void AMFG_Character::UpdateUltimateDuration(float Value)
 {
+	//Updates ultimate current duration to notify widgets and classes
 	CurrentUltimateDuration = FMath::Clamp(CurrentUltimateDuration - Value, 0.0f, MaxUltimateDuration);
 	OnUltimateUpdateDelegate.Broadcast(CurrentUltimateDuration, MaxUltimateDuration);
 
 	BP_UpdateUltimateDuration(Value);
 
+	//When duration is 0 resets ultimate behavior to default and starts loading ultimate automatically
 	if (CurrentUltimateDuration == 0.0f)
 	{
 		CurrentUltimateXP = 0.0f;
@@ -836,6 +869,7 @@ void AMFG_Character::UpdateUltimateDurationWithTimer()
 	UpdateUltimateDuration(UltimateFrequency);
 }
 
+//Sets ultimate behavior for player or enemy
 void AMFG_Character::BeginUltimateBehavior()
 {
 	bCanUseWeapon = true;
@@ -860,6 +894,7 @@ void AMFG_Character::PlayStepSound(USoundCue* StepSound)
 	StepSoundComponent->Play();
 }
 
+//Checks which ability was used to play sound in AbilitiesSoundComponent
 void AMFG_Character::PlayAbilitySound(FName AbilityName)
 {
 	for (AMFG_Ability* Ability : CharacterAbilities)
@@ -881,6 +916,7 @@ void AMFG_Character::PlayAbilitySound(FName AbilityName)
 	}
 }
 
+//Plays everything related with player voice (damage, dialogs, etc.)
 void AMFG_Character::PlayVoiceSound(USoundCue* VoiceSound)
 {
 	if (!IsValid(VoiceSound))

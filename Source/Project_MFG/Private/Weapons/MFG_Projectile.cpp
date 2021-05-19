@@ -32,6 +32,7 @@ AMFG_Projectile::AMFG_Projectile()
 	InitialLifeSpan = 3.0f;
 	DamageRadius = 250.0f;
 	Damage = 30.0f;
+	DetonationTime = 2.0f;
 }
 
 // Called when the game starts or when spawned
@@ -40,7 +41,7 @@ void AMFG_Projectile::BeginPlay()
 	Super::BeginPlay();
 
 	SetLifeSpan(InitialLifeSpan);
-	GetWorldTimerManager().SetTimer(TimerHandle_HandleExplosion, this, &AMFG_Projectile::OnDetonate, 2.0f, false);
+	GetWorldTimerManager().SetTimer(TimerHandle_HandleExplosion, this, &AMFG_Projectile::OnDetonate, DetonationTime, false);
 
 }
 
@@ -61,7 +62,7 @@ void AMFG_Projectile::OnDetonate()
 
 			/*if (IsValid(HitActor))
 			{*/
-		UGameplayStatics::ApplyRadialDamage(GetWorld(), Damage, GetActorLocation(), DamageRadius, DamageType, TArray<AActor*>(), this, (AController*)GetOwner(), true, ECC_Visibility);
+		UGameplayStatics::ApplyRadialDamage(GetWorld(), Damage, GetActorLocation(), DamageRadius, ProjectileDamageType, TArray<AActor*>(), this, (AController*)GetOwner(), true, ECC_Visibility);
 		/*UGameplayStatics::ApplyPointDamage(HitActor, Damage, ShotDirection, HitResults[i], CurrentOwner->GetInstigatorController(), this, DamageType);*/
 			//}
 		//}

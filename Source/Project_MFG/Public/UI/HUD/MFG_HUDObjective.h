@@ -19,8 +19,11 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Setup")
 		bool bIsCompleted;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup", meta = (ExposeOnSpawn = "true"))
 		FName ObjectiveName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup")
+		FName ObjectiveIdentifier;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Setup")
 		FLinearColor CurrentColor;
@@ -31,5 +34,7 @@ public:
 public:
 
 	void ObjectiveCompleted();
+
+	FName GetObjectiveIdentifier() { return ObjectiveIdentifier; };
 	
 };

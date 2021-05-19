@@ -6,6 +6,7 @@
 
 void UMFG_ANAbilitySound::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
+	//Cast actor in notify to playAbilitySound
 	AActor* CharacterActor = MeshComp->GetOwner();
 	if (IsValid(CharacterActor))
 	{

@@ -16,6 +16,7 @@ class PROJECT_MFG_API AMFG_AbilityJetpack : public AMFG_Ability
 
 protected:
 	
+	//Sets the force in which player will launched when ability is used
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
 		float DashForce;
 
@@ -23,7 +24,7 @@ protected:
 
 	virtual void BeginPlay() override;
 
-	virtual void CastAbility() override;
+	virtual void CastAbility(AMFG_Character* AbilityCaster) override;
 
 	virtual void ReloadAbility() override;
 	

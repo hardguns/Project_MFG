@@ -5,6 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/AudioComponent.h"
+#include "Core/MFG_GameMode.h"
 #include "Sound/SoundCue.h"
 #include "MFG_Character.h"
 
@@ -35,6 +36,7 @@ void AMFG_InteractiveObject::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	GameModeReference = Cast<AMFG_GameMode>(GetWorld()->GetAuthGameMode());
 }
 
 // Called every frame
@@ -74,6 +76,7 @@ void AMFG_InteractiveObject::NotifyActorEndOverlap(AActor* OtherActor)
 	}
 }
 
+//Controls if interactive object is active
 void AMFG_InteractiveObject::SetObjectActiveState(bool NewState)
 {
 	bSwitchState = NewState;
@@ -95,11 +98,13 @@ void AMFG_InteractiveObject::HitObject()
 	
 }
 
+//Called in child to do different actions
 void AMFG_InteractiveObject::Interact(AMFG_Character* InteractingCharacter)
 {
 	BP_Interact(InteractingCharacter);
 }
 
+//Called in child to do different actions
 void AMFG_InteractiveObject::StopInteract(AMFG_Character* InteractingCharacter)
 {
 	BP_StopInteract(InteractingCharacter);

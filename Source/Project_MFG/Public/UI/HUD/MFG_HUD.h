@@ -7,6 +7,7 @@
 #include "MFG_HUD.generated.h"
 
 class UMFG_HUDRadar;
+class UMFG_HUDObjectivesContainer;
 /**
  * 
  */
@@ -19,5 +20,12 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Setup", meta = (BindWidget))
 		UMFG_HUDRadar* W_Radar;
-	
+
+	UPROPERTY(BlueprintReadOnly, Category = "Setup", meta = (BindWidget))
+		UMFG_HUDObjectivesContainer* W_ObjectivesContainer;
+
+public:
+
+	UMFG_HUDObjectivesContainer* GetObjectivesContainer() { return W_ObjectivesContainer; };
+
 };

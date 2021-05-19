@@ -22,6 +22,7 @@
 #include "Weapons/MFG_Weapon.h"
 #include "Items/MFG_Item.h"
 #include "Core/MFG_GameInstance.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 AMFG_HealerBot::AMFG_HealerBot()
@@ -41,14 +42,14 @@ AMFG_HealerBot::AMFG_HealerBot()
 
 	DecalEffect = CreateDefaultSubobject<UDecalComponent>(TEXT("DecalComponent"));
 	DecalEffect->SetupAttachment(HealDetectorComponent);
-	DecalEffect->SetHiddenInGame(true);
+	DecalEffect->SetVisibility(false);
 
 	MinDistanceToTarget = 100.0f;
 	ForceMagnitude = 500.0f;
-	SecondsToHeal = 0.5f;
+	TimeBetweenHealing = 0.5f;
+	MaxTimeHealing = 4.0f;
 	HealAmount = 5.0f;
 	ActionRadius = 400.0f;
-	HealCounter = 0;
 	XPValue = 10.0f;
 	ShieldSocketName = "SCK_Shield";
 
@@ -65,6 +66,7 @@ void AMFG_HealerBot::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//Gets player reference placed in world
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	if (IsValid(PlayerPawn))
 	{
@@ -73,6 +75,7 @@ void AMFG_HealerBot::BeginPlay()
 
 	GameInstanceReference = Cast<UMFG_GameInstance>(GetWorld()->GetGameInstance());
 
+	//Creates a decal effect to show how the bot is doing at the moment
 	if (IsValid(DecalEffect))
 	{
 		DecalEffect->DecalSize.Y = ActionRadius;
@@ -86,12 +89,13 @@ void AMFG_HealerBot::BeginPlay()
 
 	BotMaterial = BotMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, BotMeshComponent->GetMaterial(0));
 
+	//Delegates
 	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &AMFG_HealerBot::TakingDamage);
 	HealthComponent->OnDeadDelegate.AddDynamic(this, &AMFG_HealerBot::GiveXP);
 
 	HealDetectorComponent->OnComponentBeginOverlap.AddDynamic(this, &AMFG_HealerBot::StartAllyOverlap);
-	HealDetectorComponent->OnComponentEndOverlap.AddDynamic(this, &AMFG_HealerBot::EndAllyOverlap);
 
+	//Get initial path point
 	NextPathPoint = GetNextPathPoint();
 }
 
@@ -109,17 +113,25 @@ void AMFG_HealerBot::TakingDamage(UMFG_HealthComponent* CurrentHealthComponent, 
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionEffect, GetActorLocation());
 		}
 
-		GetWorldTimerManager().ClearTimer(TimerHandle_BeginAttackBehaviour);
+		//Stop attacking to player when dead 
+		if (bIsAttacking)
+		{
+			GetWorldTimerManager().ClearTimer(TimerHandle_BeginAttackBehaviour);
+		}
 
 		if (IsValid(GameInstanceReference))
 		{
+			//Sums value to EnemyCounter variable on Game Instance
 			GameInstanceReference->AddEnemyDefeatedToCounter();
 		}
+
+		PlayExplosionSound();
 
 		Destroy();
 	}
 }
 
+//Gets bot's next path point to go to
 FVector AMFG_HealerBot::GetNextPathPoint()
 {
 	TArray<AActor*> FoundActors;
@@ -132,12 +144,14 @@ FVector AMFG_HealerBot::GetNextPathPoint()
 
 		if (IsValid(CastedEnemy))
 		{
+			//Checks if current enemy needs to be healed
 			if (CastedEnemy->HealthComponent->GetCurrentHealth() < CastedEnemy->HealthComponent->GetMaxHealth() && !CastedEnemy->HealthComponent->IsDead())
 			{
 				EnemyReference = CastedEnemy;
 				bHasToHeal = true;
 				break;
 			}
+			//Checks if current enemy is closer to the bot to give him a shield
 			else if (!CastedEnemy->HealthComponent->IsDead())
 			{
 				float Distance = GetDistanceTo(CastedEnemy);
@@ -155,26 +169,22 @@ FVector AMFG_HealerBot::GetNextPathPoint()
 	if (FoundActors.Num() == 0)
 	{
 		UnsetBotBehaviour();
-		EnemyReference = NULL;
+		EnemyReference = nullptr;
 		bHasToHeal = false;
+
+		if (!bIsAttacking)
+		{
+			bIsAttacking = true;
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle_BeginAttackBehaviour, this, &AMFG_HealerBot::AttackPlayer, 1.0f, true);
+		}
+
+		return GetActorLocation();
 	}
 	//New enemy appears on world
 	else
 	{
 		bIsAttacking = false;
 		GetWorldTimerManager().ClearTimer(TimerHandle_BeginAttackBehaviour);
-	}
-
-	//If EnemyReference is not valid it means that there are not more enemies on world, bot starts attack to player
-	if (!IsValid(EnemyReference))
-	{
-		if (!bIsAttacking && !bHasToHeal)
-		{
-			AttackPlayer();
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle_BeginAttackBehaviour, this, &AMFG_HealerBot::AttackPlayer, 1.0f, true);
-		}
-
-		return GetActorLocation();
 	}
 
 	UNavigationPath* NavigationPath = UNavigationSystemV1::FindPathToActorSynchronously(GetWorld(), GetActorLocation(), EnemyReference);
@@ -187,56 +197,59 @@ FVector AMFG_HealerBot::GetNextPathPoint()
 	return GetActorLocation();
 }
 
+//Checks if bot is overlapping to current enemy reference in GetNextPathPoint method
 void AMFG_HealerBot::StartAllyOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (IsValid(EnemyReference) && OtherActor == EnemyReference)
+	if (IsValid(OtherActor))
 	{
-		bIsOverlapping = true;
-		if (EnemyReference->HealthComponent->GetCurrentHealth() == EnemyReference->HealthComponent->GetMaxHealth())
+		AMFG_Enemy* OverlappedEnemy = Cast<AMFG_Enemy>(OtherActor);
+		if (IsValid(OverlappedEnemy))
 		{
-			GiveShieldToAllies();
+			SetBotBehaviour();
 		}
 	}
 }
 
-void AMFG_HealerBot::EndAllyOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	bIsOverlapping = false;
-
-	UnsetBotBehaviour();
-}
-
+//Sets if bot has to heal or has to give shield to its "allies" 
 void AMFG_HealerBot::SetBotBehaviour()
 {
 	//Starts healing action
-	if (!bIsHealing && bHasToHeal && bIsOverlapping)
+	if (!bIsHealing && bHasToHeal)
 	{
 		bIsHealing = true;
-		HealAllies();
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle_HealTimer, this, &AMFG_HealerBot::HealAllies, SecondsToHeal, true);
+		//HealAllies();
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle_HealTimer, this, &AMFG_HealerBot::HealAllies, TimeBetweenHealing, true);
+	}
+	//Starts shielding action
+	else if (!bIsHealing && !bHasToHeal && !bIsAttacking)
+	{
+		GiveShieldToAllies();
 	}
 }
 
+//Unset any bot behaviour (healing or giving shield)
 void AMFG_HealerBot::UnsetBotBehaviour()
 {
+	//Hides decal effect in order to make player know bot is not making any action
 	if (IsValid(DecalEffect))
 	{
-		DecalEffect->SetHiddenInGame(true);
+		DecalEffect->SetVisibility(false);
 	}
 
+	//Hides healing effect if visible
 	if (!IsValid(HealingAttachedEffectComponent))
 	{
 		return;
 	}
 	else
 	{
-		HealingAttachedEffectComponent->DeactivateSystem();
+		HealingAttachedEffectComponent->SetVisibility(false);
 	}
-	
 }
 
 void AMFG_HealerBot::HealAllies()
 {
+	//Look for actors in specific radius to get possible enemies to heal
 	UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), ActionRadius, ActorsEnum, nullptr, TArray<AActor*>(), ActorsToHeal);
 
 	for (AActor* AllyToHeal : ActorsToHeal)
@@ -254,26 +267,38 @@ void AMFG_HealerBot::HealAllies()
 		}
 	}
 
+	//Set decal to visibility and changes color
 	if (IsValid(DecalEffect))
 	{
-		DecalEffect->SetHiddenInGame(false);
+		DecalEffect->SetVisibility(true);
 		if (IsValid(DecalMaterial))
 		{
 			DecalMaterial->SetVectorParameterValue(FName("CircleColor"), FLinearColor::Green);
 		}
 	}
 
+	//Set healing effect visibility and changes color
 	if (IsValid(HealingEffect))
 	{
 		if (!IsValid(HealingAttachedEffectComponent))
 		{
 			HealingAttachedEffectComponent = UGameplayStatics::SpawnEmitterAttached(HealingEffect, BotMeshComponent);
 		}
+		else
+		{
+			HealingAttachedEffectComponent->SetVisibility(true);
+		}
 	}
 
-	HealCounter += 0.5f;
+	HealCounter++;
 
-	if (HealCounter >= 2.0f)
+	//Heal will stop when heal counter is greater or equals than MaxTimeHealing variable
+	TryStopHealing();
+}
+
+void AMFG_HealerBot::TryStopHealing()
+{
+	if (HealCounter >= MaxTimeHealing)
 	{
 		bIsHealing = false;
 		bHasToHeal = false;
@@ -281,57 +306,52 @@ void AMFG_HealerBot::HealAllies()
 
 		GetWorldTimerManager().ClearTimer(TimerHandle_HealTimer);
 
-		if (IsValid(HealingAttachedEffectComponent))
-		{
-			HealingAttachedEffectComponent->DeactivateSystem();
-		}
+		UnsetBotBehaviour();
 	}
 }
 
 void AMFG_HealerBot::GiveShieldToAllies()
 {
+	//Set decal to visibility and changes color
 	if (IsValid(DecalEffect))
 	{
-		DecalEffect->SetHiddenInGame(false);
+		DecalEffect->SetVisibility(true);
 		if (IsValid(DecalMaterial))
 		{
 			DecalMaterial->SetVectorParameterValue(FName("CircleColor"), FLinearColor::Blue);
 		}
 	}
 
-	FVector ShieldSocketLocation = EnemyReference->GetMesh()->GetSocketLocation(ShieldSocketName);
-
+	//Look for actors in specific radius to get possible enemies to give shield
 	if (IsValid(InitialShieldClass))
 	{
-		AMFG_Character* EnemyToCharacter = Cast<AMFG_Character>(EnemyReference);
-		if (IsValid(EnemyToCharacter) && !IsValid(EnemyToCharacter->GetShieldActor()))
-		{
-			AMFG_Shield* NewShield = GetWorld()->SpawnActor<AMFG_Shield>(InitialShieldClass, ShieldSocketLocation, EnemyReference->GetActorRotation());
+		TArray<AActor*> ActorsToGiveShield;
+		UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), ActionRadius, ActorsEnum, nullptr, TArray<AActor*>(), ActorsToGiveShield);
 
-			NewShield->SetShieldOwner(EnemyReference);
-			NewShield->HitCapsuleComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
-			NewShield->HitCapsuleComponent->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Block);
-			NewShield->AttachToComponent(EnemyReference->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, ShieldSocketName);
+		for (AActor* PossibleEnemy : ActorsToGiveShield)
+		{
+			AMFG_Character* EnemyToCharacter = Cast<AMFG_Character>(PossibleEnemy);
+			if (IsValid(EnemyToCharacter) && EnemyToCharacter->GetCharacterType() == EMFG_CharacterType::CharacterType_Enemy && !IsValid(EnemyToCharacter->GetShieldActor()))
+			{
+				FVector ShieldSocketLocation = EnemyToCharacter->GetMesh()->GetSocketLocation(ShieldSocketName);
+				AMFG_Shield* NewShield = GetWorld()->SpawnActor<AMFG_Shield>(InitialShieldClass, ShieldSocketLocation, EnemyToCharacter->GetActorRotation());
+
+				NewShield->SetShieldOwner(EnemyToCharacter);
+				NewShield->HitCapsuleComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+				NewShield->HitCapsuleComponent->SetCollisionResponseToChannel(COLLISION_WEAPON, ECR_Block);
+				NewShield->AttachToComponent(EnemyToCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, ShieldSocketName);
+			}
 		}
 	}
+
+	UnsetBotBehaviour();
 }
 
+//If there are no enemies in map, bot will attack player
 void AMFG_HealerBot::AttackPlayer()
 {
-	bIsAttacking = true;
-
-	if (IsValid(DecalEffect))
-	{
-		DecalEffect->SetHiddenInGame(true);
-	}
-
 	if (IsValid(PlayerReference))
 	{
-		if (IsValid(HealingAttachedEffectComponent))
-		{
-			HealingAttachedEffectComponent->DeactivateSystem();
-		}
-		
 		if (IsValid(BotMeshComponent))
 		{
 			FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), PlayerReference->GetActorLocation());
@@ -343,8 +363,10 @@ void AMFG_HealerBot::AttackPlayer()
 	}
 }
 
+//Gives XP to player when killing bot
 void AMFG_HealerBot::GiveXP(AActor* DamageCauser)
 {
+	//Checks if player or weapon have made damage to give XP and spawn loot
 	AMFG_Character* PossiblePlayer = Cast<AMFG_Character>(DamageCauser);
 
 	if (IsValid(PossiblePlayer) && PossiblePlayer->GetCharacterType() == EMFG_CharacterType::CharacterType_Player)
@@ -369,6 +391,7 @@ void AMFG_HealerBot::GiveXP(AActor* DamageCauser)
 	BP_GiveXP(DamageCauser);
 }
 
+//Calculates probability in order to spawn or not loot as reward for player
 bool AMFG_HealerBot::TrySpawnLoot()
 {
 	if (!IsValid(LootItemClass))
@@ -408,8 +431,19 @@ void AMFG_HealerBot::Tick(float DeltaTime)
 		BotMeshComponent->AddForce(ForceDirection, NAME_None, true);
 	}
 
-	SetBotBehaviour();
+	if (bDebug)
+	{
+		DrawDebugSphere(GetWorld(), NextPathPoint, 30.0f, 15, FColor::Purple, false, 0, 0, 1.0f);
+	}
+}
 
-	DrawDebugSphere(GetWorld(), NextPathPoint, 30.0f, 15, FColor::Purple, false, 0, 0, 1.0f);
+void AMFG_HealerBot::PlayExplosionSound()
+{
+	if (!IsValid(ExplosionSound))
+	{
+		return;
+	}
+
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), ExplosionSound, GetActorLocation());
 }
 

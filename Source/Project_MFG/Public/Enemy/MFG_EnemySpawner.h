@@ -9,6 +9,7 @@
 class UBillboardComponent;
 class AMFG_Enemy;
 class AMFG_PathActor;
+class AMFG_GameMode;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnemiesSpawnedDefeatedSignature);
 
@@ -54,7 +55,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawner", meta = (UIMin = 0.1f, ClampMin = 0.1f))
 		float TimeToSpawn;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spawner")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawner|Destructible Object")
+		AActor* DestructibleObject;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawner")
 		TArray<TSubclassOf<AMFG_Enemy>> EnemyClasses;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawner", meta = (MakeEditWidget = true))
@@ -62,6 +66,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawner")
 		TArray<AMFG_PathActor*> EnemyActorPaths;
+
+	AMFG_GameMode* GameModeReference;
 
 	FTimerHandle TimerHandle_SpawnEnemy;
 

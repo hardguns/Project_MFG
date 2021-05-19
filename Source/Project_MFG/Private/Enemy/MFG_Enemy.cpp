@@ -27,6 +27,8 @@ AMFG_Enemy::AMFG_Enemy()
 	WidgetHealthBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetHealthBarComponent"));
 	WidgetHealthBarComponent->SetupAttachment(RootComponent);
 
+	TimeBetweenAction = 0.3f;
+
 }
 
 void AMFG_Enemy::BeginPlay()

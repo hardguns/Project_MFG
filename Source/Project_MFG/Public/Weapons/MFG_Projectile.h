@@ -38,6 +38,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
 		float Damage;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Damage")
+		float DetonationTime;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 		UParticleSystem* ExplosionEffect;
 
@@ -45,7 +48,7 @@ protected:
 		USoundCue* ExplosionSound;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
-		TSubclassOf<UDamageType> DamageType;
+		TSubclassOf<UDamageType> ProjectileDamageType;
 
 	FTimerHandle TimerHandle_HandleExplosion;
 
@@ -67,7 +70,11 @@ public:
 
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
 
+	void SetNewDamageValue(float NewDamage);
+
 	float GetDamageValue(){ return Damage; };
 
-	void SetNewDamageValue(float NewDamage);
+	UProjectileMovementComponent* GetProjectileMovementComponent() { return ProjectileMovementComponent; };
+
+	USphereComponent* GetProjectileCollisionComponent() { return ProjectileCollision; };
 };

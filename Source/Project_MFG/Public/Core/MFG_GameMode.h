@@ -12,6 +12,7 @@ class USoundCue;
 class AMFG_Enemy;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKeyAddedSignature, FName, KeyTag);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEnergyEnabledSignature, FName, ObjectiveIdentifier);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGameStateChange);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAlertModeChangeSignature, bool, bIsAlert);
 
@@ -63,6 +64,9 @@ public:
 		
 	UPROPERTY(BlueprintAssignable)
 		FOnAlertModeChangeSignature OnAlertModeChangeDelegate;
+		
+	UPROPERTY(BlueprintAssignable)
+		FOnEnergyEnabledSignature OnEnergyEnabledDelegate;
 
 protected:
 
@@ -78,6 +82,9 @@ public:
 
 	UFUNCTION()
 	void AddKeyToCharacter(AMFG_Character* KeyOwner, FName KeyTag);
+
+	UFUNCTION()
+	void EnableElectricity(FName ObjectiveIdentier);
 	
 	UFUNCTION()
 	void Victory(AMFG_Character* Character);
@@ -88,6 +95,8 @@ public:
 	void BackToMainMenu();
 
 	void CheckAlertMode();
+
+	void AddEnemyToLevel(AMFG_Enemy* NewEnemy);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void BP_Victory(AMFG_Character* Character);

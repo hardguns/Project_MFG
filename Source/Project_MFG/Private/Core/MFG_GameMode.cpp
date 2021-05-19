@@ -107,6 +107,11 @@ void AMFG_GameMode::AddKeyToCharacter(AMFG_Character* KeyOwner, FName KeyTag)
 	}
 }
 
+void AMFG_GameMode::EnableElectricity(FName ObjectiveIdentier)
+{
+	OnEnergyEnabledDelegate.Broadcast(ObjectiveIdentier);
+}
+
 void AMFG_GameMode::Victory(AMFG_Character* Character)
 {
 	Character->DisableInput(nullptr);
@@ -116,7 +121,7 @@ void AMFG_GameMode::Victory(AMFG_Character* Character)
 
 	PlayMusic(VictoryMusic);
 
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle_BackToMainMenu, this, &AMFG_GameMode::BackToMainMenu, 3.0f, false);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_BackToMainMenu, this, &AMFG_GameMode::BackToMainMenu, 4.0f, false);
 	
 	BP_Victory(Character);
 }
@@ -175,4 +180,9 @@ void AMFG_GameMode::CheckAlertMode()
 		bIsAlertMode = bEnemyInAlertMode;
 		OnAlertModeChangeDelegate.Broadcast(bIsAlertMode);
 	}
+}
+
+void AMFG_GameMode::AddEnemyToLevel(AMFG_Enemy* NewEnemy)
+{
+	LevelEnemies.Add(NewEnemy);
 }

@@ -10,9 +10,10 @@ class UStaticMeshComponent;
 class UParticleSystem;
 class AMFG_EPlatform;
 class AMFG_Activable;
+class AMFG_GameMode;
 
 /**
- * 
+ *
  */
 UCLASS()
 class PROJECT_MFG_API AMFG_ElectricityGen : public AMFG_InteractiveObject
@@ -23,6 +24,11 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Components")
 		UStaticMeshComponent* ElectricityMeshComponent;
+
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Objective")
+		FName ObjectiveIdentifier;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 		UParticleSystem* ActivateEffect;
@@ -47,7 +53,7 @@ public:
 	void ActivateSpawners();
 
 protected:
-
+	
 	virtual void Interact(AMFG_Character* OtherActor) override;
 
 	virtual void StopInteract(AMFG_Character* OtherActor) override;
@@ -55,5 +61,5 @@ protected:
 	virtual void PlayInteractionSound(USoundCue* InteractionSound) override;
 
 	virtual void HitObject() override;
-	
+
 };

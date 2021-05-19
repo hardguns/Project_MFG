@@ -16,24 +16,30 @@ struct FMFG_AbilityStruct
 
 public:
 
+	//Sets ability position in abilities array in character or enemy
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		int AbilityIndex;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		FName AbilityName;
 
+	//Sets maximum times that an ability can be used
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		int MaximumAbilityUseAmount;
 
+	//Sets current times that an ability can be used
 	UPROPERTY(BlueprintReadOnly)
 		int CurrentAbilityUseAmount;
-
+	
+	//Sets ability reloading time
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		float AbilityCooldown;
 
+	//Sets a 2Dtexture that will be shown in main HUD
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		UTexture2D* AbilityIcon;
 
+	//Sets a sound that will be played when an ability is used
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		USoundCue* AbilitySound;
 
@@ -50,6 +56,7 @@ class PROJECT_MFG_API AMFG_Ability : public AActor
 
 protected:
 
+	//Struct to create a new ability
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability Setup")
 		FMFG_AbilityStruct AbilityDetails;
 
@@ -70,9 +77,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void CastAbility();
+	virtual void CastAbility(AMFG_Character* AbilityCaster);
 
-	virtual void SetAbilityBehavior();
+	virtual void SetAbilityBehavior(AMFG_Character* AbilityCaster);
 
 	virtual void StopCastingAbility();
 
@@ -81,10 +88,10 @@ public:
 protected:
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-		void BP_CastAbility();
+		void BP_CastAbility(AMFG_Character* AbilityCaster);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
-		void BP_SetAbilityBehavior();
+		void BP_SetAbilityBehavior(AMFG_Character* AbilityCaster);
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 		void BP_StopCastingAbility();

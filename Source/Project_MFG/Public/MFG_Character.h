@@ -45,6 +45,7 @@ class PROJECT_MFG_API AMFG_Character : public ACharacter
 
 protected:
 
+	//Components
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		USpringArmComponent* SpringArmComponent;
 
@@ -76,9 +77,11 @@ public:
 	
 protected:
 
+	//Sets if camera will be in first or third person view
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
 		bool bUseFirstPersonView;
 
+	//Sets if pitch (up and down) look will be inverted 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
 		bool bIsLookInversion;
 
@@ -97,6 +100,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Game Over")
 		bool bHasToDestroy;
 
+	//Sets if ultimate will use Tick method
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate")
 		bool bUltimateWithTick;
 
@@ -118,9 +122,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee")
 		float MeleeDamage;
 
+	//Sets maximum combo multiplier amount
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee", meta = (EditCondition = bCanMakeCombos, ClampMin = 1.0, UIMin = 1.0))
 		float MaxComboMultiplier;
 
+	//Sets current combo multiplier when using melee
 	UPROPERTY(BlueprintReadOnly, Category = "Melee", meta = (EditCondition = bCanMakeCombos, ClampMin = 1.0, UIMin = 1.0))
 		float CurrentComboMultiplier;
 
@@ -148,33 +154,43 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Ultimate|Time")
 		float CurrentUltimateDuration;
 
+	//Updates ultimate counter when activated (This is used when using ultimate by timer only)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate|Time")
 		float UltimateFrequency;
 
+	//Sets animation play rate for ultimate montage
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate|Abilities", meta = (ClampMin = 0.0, UIMin = 0.0))
 		float UltimatePlayRate;
 
+	//Sets initial damage for weapon
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate|Abilities", meta = (ClampMin = 0.0, UIMin = 0.0))
 		float WeaponInitialDamage;
 
+	//Sets ultimate damage for weapon
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate|Abilities", meta = (ClampMin = 0.0, UIMin = 0.0))
 		float UltimateWeaponDamageMultiplier;
 
+	//Sets global play rate for animations use in AnimationBlueprint
 	UPROPERTY(BlueprintReadOnly, Category = "Ultimate|Abilities", meta = (ClampMin = 0.0, UIMin = 0.0))
 		float PlayRate;
 
+	//Sets play rate for melee animation montage
 	UPROPERTY(BlueprintReadOnly, Category = "Melee", meta = (ClampMin = 0.0, UIMin = 0.0))
 		float MeleePlayRate;
 
+	//Sets how often a weapon can be used when ultimate is active
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ultimate|Abilities", meta = (ClampMin = 0.0, UIMin = 0.0))
 		float UltimateShotFrequency;
 
+	//Sets socket name to attach FPS camera to Character
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
 		FName FPSCameraSocketName;
 
+	//Sets socket name to attach melee detector component
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Melee")
 		FName MeleeSocketName;
 
+	//Sets socket name to attach particle systems
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 		FName EffectsSocketName;
 		
@@ -205,33 +221,42 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 		float RollForce;
 
+	//Sets how much time will take to have ultimate ready if it fills automatically
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate")
 		float MaxUltimateReloadSeconds;
-
+	
+	//Saves all key names that have been picked up by player
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
 		TArray<FName> DoorKeys;
 
+	//Enum to know which CharacterType has an actor
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 		EMFG_CharacterType CharacterType;
-
+	
+	//Sets initial weapon that enemy or player will have 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 		TSubclassOf<AMFG_Weapon> InitialWeaponClass;
 
+	//Saves weapon instance
 	UPROPERTY(BlueprintReadWrite, Category = "Weapon")
 		AMFG_Weapon* CurrentWeapon;
 
+	//Saves shield instance if shield is given for enemies
 	UPROPERTY(BlueprintReadWrite, Category = "Shield")
 		AMFG_Shield* CurrentShield;
 
+	//Sets player main HUD
 	UPROPERTY(BlueprintReadWrite, Category = "HUD")
 		UMFG_HUD* CharacterMainHUD;
 
+	//Animation Montages
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation")
 		UAnimMontage* MeleeMontage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation")
 		UAnimMontage* UltimateMontage;
 
+	//Effects
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 		UParticleSystem* BurningEffect;
 
@@ -244,9 +269,11 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Effects")
 		UParticleSystemComponent* UltimateWeaponEffectComponent;
 
+	//Sets which abilities class will have available player or enemy 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ability")
 		TArray<TSubclassOf<AMFG_Ability>> CharacterAbilitiesClasses;
 
+	//Sets instance of abilities for player or enemy
 	UPROPERTY(BlueprintReadOnly, Category = "Ability")
 		TArray<AMFG_Ability*> CharacterAbilities;
 
@@ -269,6 +296,7 @@ protected:
 
 	FTimerDelegate TimerDelegate;
 
+	//Sound Cues
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
 		USoundCue* HurtSound;
 
@@ -318,9 +346,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 		bool bIsShooting;
 
-	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	//	bool bIsWeaponAutomatic;
-
+	//When close to object interactive object will be set for player action
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Action")
 		AMFG_InteractiveObject* InteractiveObject;
 
@@ -334,35 +360,45 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	//Sets different references from map
 	void InitializeReferences();
 
+	//Called when player is moving forward or backward
 	void MoveForward(float value);
 
+	//Called when player is moving left or right
 	void MoveRight(float value);
 
+	//Called when player or enemy is crouching
 	void CrouchStart();
 
+	//Called when player is doing a roll
 	void RollStart();
 
-	void UsePrimaryAbility();
-
+	//Called when player or enemy is running
 	UFUNCTION(BlueprintCallable)
 	void Run();
 
+	//Called when player or enemy is trying to running
 	void StopRunning();
 
+	//Sets speed depending on player action (running, walking, crouching)
 	void SetCharacterSpeed();
 
+	//Interacts with object when player use action key
 	void DoAction();
 
 	virtual void Jump();
 
 	virtual void StopJumping();
 
+	//Spawns initial weapon actor to attach it to player or enemy
 	void CreateInitialWeapon();
 
+	//Spawns initial ability actors to attach them to player or enemy
 	void CreateInitialAbilities();
 
+	//When starting game or after using ultimate, this function reloads ultimate automatically
 	void StartUltimateLoading();
 
 	UFUNCTION(BlueprintCallable)
@@ -371,6 +407,7 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void StopWeaponAction();
 
+	//Sets weapon behavior depending on the equipped weapon
 	void SetWeaponBehavior();
 
 	UFUNCTION(BlueprintCallable)
@@ -378,8 +415,10 @@ protected:
 
 	void StopMelee();
 
+	//Receives index from player key actions to cast an ability
 	void StartAbility(int index);
 
+	//If some action cancels an ability StopAbility is used
 	void StopAbility();
 
 	void StartUltimate();
@@ -390,6 +429,7 @@ protected:
 
 	void PlaySound(USoundCue* PlayableSound);
 
+	//Delegates - subscriptions
 	UFUNCTION()
 	void MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
@@ -429,6 +469,10 @@ public:
 	UMFG_HUD* GetCharacterMainHUD(){ return CharacterMainHUD; };
 
 	UTexture2D* GetCharacterHUDImage(){ return CharacterHUDImage; };
+
+	AMFG_InteractiveObject* GetInteractiveObject(){ return InteractiveObject; };
+
+	void SetInteractiveObject(AMFG_InteractiveObject* NewInteractiveObject){ InteractiveObject = NewInteractiveObject; };
 
 	void SetIsUsingBag(bool NewState);
 
@@ -488,6 +532,7 @@ public:
 
 protected:
 
+	//Functions callable in blueprint as events 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void BP_GainUltimateXP(float XPGained);
 	

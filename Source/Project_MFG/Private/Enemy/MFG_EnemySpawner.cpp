@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Components/BillboardComponent.h"
+#include "Core/MFG_GameMode.h"
 #include "Enemy/MFG_Enemy.h"
 
 // Sets default values
@@ -24,12 +25,15 @@ AMFG_EnemySpawner::AMFG_EnemySpawner()
 
 	DirectionIndexes.Add(-1);
 	DirectionIndexes.Add(1);
+
 }
 
 // Called when the game starts or when spawned
 void AMFG_EnemySpawner::BeginPlay()
 {
 	Super::BeginPlay();
+
+	GameModeReference = Cast<AMFG_GameMode>(GetWorld()->GetAuthGameMode());
 
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle_SpawnEnemy, this, &AMFG_EnemySpawner::SpawnEnemy, TimeToSpawn, true);
 }
@@ -92,6 +96,11 @@ void AMFG_EnemySpawner::SpawnEnemy()
 		//AMFG_Enemy* NewEnemy = GetWorld()->SpawnActor<AMFG_Enemy>(EnemyClasses[indexSelected], SpawnPoint, FRotator::ZeroRotator, SpawnParameters);
 		if (IsValid(NewEnemy))
 		{
+			if (NewEnemy->GetEnemyType() == EMFG_EnemyType::EnemyType_DestroyerShooter || NewEnemy->GetEnemyType() == EMFG_EnemyType::EnemyType_DestroyerMelee)
+			{
+				NewEnemy->SetDestructibleObject(DestructibleObject);
+			}
+
 			if (DirectionIndexes.Num() > 0)
 			{
 				int selectedIndex = FMath::RandRange(0, 1);
@@ -113,6 +122,7 @@ void AMFG_EnemySpawner::SpawnEnemy()
 			}
 
 			NewEnemy->FinishSpawning(EnemyTransform);
+			GameModeReference->AddEnemyToLevel(NewEnemy);
 
 			CurrentEnemyCounter++;
 			if (bHasToSpawnEnemyHordes)

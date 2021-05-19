@@ -21,9 +21,9 @@ void AMFG_AbilityLaser::BeginPlay()
 	AbilityDetails.CurrentAbilityUseAmount = AbilityDetails.MaximumAbilityUseAmount;
 }
 
-void AMFG_AbilityLaser::CastAbility()
+void AMFG_AbilityLaser::CastAbility(AMFG_Character* AbilityCaster)
 {
-	Super::CastAbility();
+	Super::CastAbility(AbilityCaster);
 
 	if (AbilityDetails.CurrentAbilityUseAmount > 0)
 	{
@@ -66,9 +66,9 @@ void AMFG_AbilityLaser::ReloadAbility()
 	}
 }
 
-void AMFG_AbilityLaser::SetAbilityBehavior()
+void AMFG_AbilityLaser::SetAbilityBehavior(AMFG_Character* AbilityCaster)
 {
-	Super::SetAbilityBehavior();
+	Super::SetAbilityBehavior(AbilityCaster);
 
 	if (IsValid(PlayerCharacterReference))
 	{

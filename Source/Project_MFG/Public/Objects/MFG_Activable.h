@@ -20,6 +20,7 @@ class PROJECT_MFG_API AMFG_Activable : public AMFG_InteractiveObject
 
 protected:
 
+	//Components
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		UStaticMeshComponent* ActivatorMeshComponent;
 
@@ -40,9 +41,11 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Activable Action")
 		bool bWasActivated;
 
+	//Saves activable tag to active or decativate object (This is only used when activable needs a key)
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Activable Action")
 		FName ActivableTag;
 
+	//When activable is used, it will active these objects
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Activables")
 		TArray<AActor*> ActivableObjects;
 
@@ -52,9 +55,9 @@ public:
 
 public:
 
-	void CheckActivable(AMFG_Character* OtherActor);
+	virtual void CheckActivable(AMFG_Character* OtherActor);
 
-	void UseActivable();
+	virtual void UseActivable();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Activables")
 	void BP_UseActivator();
@@ -63,8 +66,10 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	//When begin overlapped, sets this object to player for interaction
 	virtual void Interact(AMFG_Character* OtherActor) override;
 
+	//When end overlapped, unsets this object to player for interaction
 	virtual void StopInteract(AMFG_Character* OtherActor) override;
 
 	virtual void PlayInteractionSound(USoundCue* ActivableSound) override;

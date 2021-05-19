@@ -37,6 +37,7 @@ void AMFG_Activable::BeginPlay()
 	}
 }
 
+//Sets this object to possible interactive object for player
 void AMFG_Activable::Interact(AMFG_Character* OtherActor)
 {
 	Super::Interact(OtherActor);
@@ -109,6 +110,11 @@ void AMFG_Activable::CheckActivable(AMFG_Character* OtherActor)
 
 void AMFG_Activable::UseActivable()
 {
+	if (bCanBeActivatedOnce && bWasActivated)
+	{
+		return;
+	}
+
 	bSwitchState = !bSwitchState;
 
 	if (IsValid(PointLight))

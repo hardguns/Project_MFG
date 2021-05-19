@@ -3,4 +3,5 @@
 
 #include "UI/HUD/MFG_HUD.h"
 #include "UI/HUD/MFG_HUDRadar.h"
+#include "UI/HUD/MFG_HUDObjectivesContainer.h"
 

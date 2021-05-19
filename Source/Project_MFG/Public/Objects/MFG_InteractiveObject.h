@@ -8,6 +8,7 @@
 
 class UBoxComponent;
 class UAudioComponent;
+class AMFG_GameMode;
 class USoundCue;
 
 UCLASS()
@@ -16,7 +17,8 @@ class PROJECT_MFG_API AMFG_InteractiveObject : public AActor
 	GENERATED_BODY()
 
 protected:
-
+	
+	//Components
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		UBoxComponent* MainColliderComponent;
 
@@ -28,11 +30,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Interactive Object")
 		bool bSwitchState;
 
+protected:
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
 		FName InteractionParamName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
 		USoundCue* InteractionSound;
+
+	UPROPERTY(BlueprintReadOnly)
+		AMFG_GameMode* GameModeReference;
 	
 public:	
 	// Sets default values for this actor's properties
